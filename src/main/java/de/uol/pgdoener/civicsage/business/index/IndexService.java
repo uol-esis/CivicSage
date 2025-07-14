@@ -4,6 +4,7 @@ import de.uol.pgdoener.civicsage.business.dto.IndexFilesRequestInnerDto;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.business.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.business.index.document.DocumentReaderService;
+import de.uol.pgdoener.civicsage.business.index.document.MetadataKeys;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.business.index.exception.SplittingException;
 import de.uol.pgdoener.civicsage.business.index.exception.StorageException;
@@ -24,6 +25,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.ADDITIONAL_PROPERTIES;
 import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.FILE_ID;
@@ -73,6 +76,7 @@ public class IndexService {
 
         // Update the file source with the new model ID
         fileSource.getModels().add(modelID);
+        fileSource.getMetadata().putAll(getMetadataFromDocuments(documents));
         sourceService.save(fileSource);
 
         embeddingService.save(documents);
@@ -104,7 +108,7 @@ public class IndexService {
                 new HashMap<>() : indexWebsiteRequestDto.getAdditionalProperties();
 
         WebsiteSource websiteSource = sourceService.getWebsiteSourceByUrl(url)
-                .orElse(new WebsiteSource(null, url, new ArrayList<>()));
+                .orElse(new WebsiteSource(null, url, new ArrayList<>(), new HashMap<>()));
         if (websiteSource.getModels().contains(modelID)) {
             throw new SourceCollisionException("Website is already indexed for current model!");
         }
@@ -117,6 +121,7 @@ public class IndexService {
                 document.getMetadata().put(ADDITIONAL_PROPERTIES.getValue(), additionalProperties));
 
         websiteSource.getModels().add(modelID);
+        websiteSource.getMetadata().putAll(getMetadataFromDocuments(documents));
         sourceService.save(websiteSource);
 
         embeddingService.save(documents);
@@ -156,6 +161,30 @@ public class IndexService {
             log.warn("There are less documents after splitting than before.");
 
         return documents;
+    }
+
+    /**
+     * This method extracts the metadata from the first document in the list.
+     * It filters the metadata keys to only include those that are exposed via the API.
+     *
+     * @param documents the list of documents to extract metadata from
+     * @return a map of metadata keys and values that are exposed via the API
+     */
+    private Map<String, Object> getMetadataFromDocuments(List<Document> documents) {
+        final Map<String, Object> metadataOfFirstDocument = documents.getFirst().getMetadata();
+        Map<String, Object> exposedMetadata = MetadataKeys.EXPOSED_KEYS.stream()
+                .map(MetadataKeys::getValue)
+                .filter(metadataOfFirstDocument::containsKey)
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        metadataOfFirstDocument::get
+                ));
+        if (metadataOfFirstDocument.containsKey(ADDITIONAL_PROPERTIES.getValue()))
+            exposedMetadata.put(
+                    ADDITIONAL_PROPERTIES.getValue(),
+                    metadataOfFirstDocument.get(ADDITIONAL_PROPERTIES.getValue())
+            );
+        return exposedMetadata;
     }
 
 }
