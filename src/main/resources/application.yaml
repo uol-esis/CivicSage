@@ -20,6 +20,8 @@ spring:
           model: ai/smollm2
     model:
       embedding: openai
+    retry:
+      max-attempts: 2
   cache:
     cache-names:
       - embeddingSearch
