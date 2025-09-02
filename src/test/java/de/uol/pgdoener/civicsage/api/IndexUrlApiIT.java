@@ -1,16 +1,17 @@
 package de.uol.pgdoener.civicsage.api;
 
-import de.uol.pgdoener.civicsage.api.controller.IndexController;
-import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
+import de.uol.pgdoener.civicsage.business.source.WebsiteSource;
+import de.uol.pgdoener.civicsage.business.source.WebsiteSourceRepository;
 import de.uol.pgdoener.civicsage.test.support.DummyEmbeddingModel;
 import de.uol.pgdoener.civicsage.test.support.MariaDBContainerFactory;
 import io.minio.MinioClient;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -22,20 +23,19 @@ import org.testcontainers.containers.MariaDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.time.OffsetDateTime;
-import java.util.UUID;
+import java.time.LocalDate;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-class SearchApiIT {
+class IndexUrlApiIT {
 
-    static final String API_BASE_PATH = "/api/v1/search";
+    static final String API_BASE_PATH = "/api/v1/index/url";
 
     @Container
     @ServiceConnection
@@ -49,17 +49,22 @@ class SearchApiIT {
         return new DummyEmbeddingModel();
     }
 
+
     @Autowired
     MockMvc mockMvc;
+    @Autowired
+    WebsiteSourceRepository websiteSourceRepository;
+    @Value("${spring.ai.openai.embedding.options.model}")
+    String modelID;
 
     @BeforeAll
-    static void beforeAll(
-            @Autowired IndexController indexController
-    ) {
+    static void beforeAll() {
         mariadb.start();
-        IndexWebsiteRequestDto indexWebsiteRequestDto = new IndexWebsiteRequestDto()
-                .url("https://www.example.com");
-        indexController.indexWebsite(indexWebsiteRequestDto);
+    }
+
+    @AfterEach
+    void afterEach() {
+        websiteSourceRepository.deleteAll();
     }
 
     @AfterAll
@@ -68,42 +73,34 @@ class SearchApiIT {
     }
 
     @Test
-    void testSearchApi() throws Exception {
+    void testIndexApiUrl() throws Exception {
         mockMvc.perform(post(API_BASE_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "query": "Hello World"
+                                  "url": "https://example.com"
                                 }
                                 """)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$.[0].documentId", UUID.class).isNotEmpty())
-                .andExpect(jsonPath("$.[0].title", String.class).isNotEmpty())
-                .andExpect(jsonPath("$.[0].uploadDate", OffsetDateTime.class).isNotEmpty())
-                .andExpect(jsonPath("$.[0].text", String.class).isNotEmpty())
-                .andExpect(jsonPath("$.[0].score", Double.class).isNotEmpty())
-                .andExpect(jsonPath("$.[0].url", is("https://www.example.com")))
-                .andExpect(jsonPath("$.[0].fileName", String.class).isEmpty())
-                .andExpect(jsonPath("$.[0].fileId", String.class).isEmpty());
+                .andExpect(status().isAccepted());
+
+        WebsiteSource source = websiteSourceRepository.findByUrl("https://example.com").orElseThrow();
+        assertEquals("https://example.com", source.getUrl());
+        assertEquals(LocalDate.now().getYear(), source.getUploadDate().toLocalDate().getYear());
+        assertEquals(LocalDate.now().getMonth(), source.getUploadDate().toLocalDate().getMonth());
+        assertEquals(LocalDate.now().getDayOfMonth(), source.getUploadDate().toLocalDate().getDayOfMonth());
+        assertEquals(1, source.getModels().size());
+        assertEquals(modelID, source.getModels().getFirst());
+        assertEquals("https://example.com", source.getMetadata().get("url"));
     }
 
     @Test
-    void testSearchApiMissingBody() throws Exception {
-        mockMvc.perform(post(API_BASE_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void testSearchApiMissingQuery() throws Exception {
+    void testIndexApiUrlInvalidUrl() throws Exception {
         mockMvc.perform(post(API_BASE_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
+                                  "url": "invalid-url"
                                 }
                                 """)
                         .accept(MediaType.APPLICATION_JSON))
@@ -111,12 +108,11 @@ class SearchApiIT {
     }
 
     @Test
-    void testSearchApiNullQuery() throws Exception {
+    void testIndexApiUrlMissingUrl() throws Exception {
         mockMvc.perform(post(API_BASE_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "query": null
                                 }
                                 """)
                         .accept(MediaType.APPLICATION_JSON))
@@ -124,13 +120,12 @@ class SearchApiIT {
     }
 
     @Test
-    @Disabled("This has to be changed in the OpenAPI document as a `minLength = 1`. If done so, this test may be enabled.")
-    void testSearchApiEmptyQuery() throws Exception {
+    void testIndexApiUrlEmptyUrl() throws Exception {
         mockMvc.perform(post(API_BASE_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "query": ""
+                                  "url": ""
                                 }
                                 """)
                         .accept(MediaType.APPLICATION_JSON))
@@ -138,87 +133,96 @@ class SearchApiIT {
     }
 
     @Test
-    void testSearchApiNegativePageNumber() throws Exception {
+    void testIndexApiUrlNoProtocol() throws Exception {
         mockMvc.perform(post(API_BASE_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .queryParam("pageNumber", "-1")
                         .content("""
                                 {
-                                  "query": "Hello World"
+                                  "url": "example.com"
+                                }
+                                """)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isAccepted());
+
+        WebsiteSource source = websiteSourceRepository.findByUrl("https://example.com").orElseThrow();
+        assertEquals("https://example.com", source.getUrl());
+        assertEquals("https://example.com", source.getMetadata().get("url"));
+    }
+
+    @Test
+    void testIndexApiUrlTrailingSlash() throws Exception {
+        mockMvc.perform(post(API_BASE_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "url": "https://example.com/"
+                                }
+                                """)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isAccepted());
+
+        WebsiteSource source = websiteSourceRepository.findByUrl("https://example.com").orElseThrow();
+        assertEquals("https://example.com", source.getUrl());
+        assertEquals("https://example.com", source.getMetadata().get("url"));
+    }
+
+    @Test
+    void testIndexApiUrlCollision() throws Exception {
+        mockMvc.perform(post(API_BASE_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "url": "https://example.com"
+                                }
+                                """)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isAccepted());
+
+        mockMvc.perform(post(API_BASE_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "url": "https://example.com"
+                                }
+                                """)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void testIndexApiUrlCollisionWithSlash() throws Exception {
+        mockMvc.perform(post(API_BASE_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "url": "https://example.com"
+                                }
+                                """)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isAccepted());
+
+        mockMvc.perform(post(API_BASE_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "url": "https://example.com/"
+                                }
+                                """)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void testIndexApiUrlUnsupportedProtocol() throws Exception {
+        mockMvc.perform(post(API_BASE_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "url": "ftp://example.com"
                                 }
                                 """)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void testSearchApiZeroPageNumber() throws Exception {
-        mockMvc.perform(post(API_BASE_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .queryParam("pageNumber", "0")
-                        .content("""
-                                {
-                                  "query": "Hello World"
-                                }
-                                """)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    void testSearchApiPositivePageNumber() throws Exception {
-        mockMvc.perform(post(API_BASE_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .queryParam("pageNumber", "1")
-                        .content("""
-                                {
-                                  "query": "Hello World"
-                                }
-                                """)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest()); // because only one result exists
-    }
-
-    @Test
-    void testSearchApiNegativePageSize() throws Exception {
-        mockMvc.perform(post(API_BASE_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .queryParam("pageSize", "-1")
-                        .content("""
-                                {
-                                  "query": "Hello World"
-                                }
-                                """)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void testSearchApiZeroPageSize() throws Exception {
-        mockMvc.perform(post(API_BASE_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .queryParam("pageSize", "0")
-                        .content("""
-                                {
-                                  "query": "Hello World"
-                                }
-                                """)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void testSearchApiPositivePageSize() throws Exception {
-        mockMvc.perform(post(API_BASE_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .queryParam("pageSize", "1")
-                        .content("""
-                                {
-                                  "query": "Hello World"
-                                }
-                                """)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
     }
 
 }

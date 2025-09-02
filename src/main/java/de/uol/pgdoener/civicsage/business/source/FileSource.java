@@ -10,10 +10,7 @@ import org.hibernate.annotations.TimeZoneStorageType;
 import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Getter
@@ -40,5 +37,12 @@ public class FileSource {
     // https://www.baeldung.com/hibernate-persist-json-object#the-jdbctypecode-annotation
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> metadata = new HashMap<>();
+
+    @Column(nullable = false)
+    private boolean temporary;
+
+    @Column(nullable = false)
+    @ElementCollection(fetch = FetchType.EAGER)
+    private Set<UUID> usedByChats;
 
 }
