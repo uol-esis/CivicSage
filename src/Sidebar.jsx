@@ -14,6 +14,7 @@ const bottomMenuItems = [
   { name: 'Datenschutz', href: '/datenschutz' },
 ];
 
+{/* Sidebar component. When you hover over it, it displays navigation links */}
 export default function Sidebar() {
   const currentPath = window.location.pathname;
 

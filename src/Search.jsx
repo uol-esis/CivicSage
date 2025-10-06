@@ -10,50 +10,53 @@ import './css/Search.css';
 
 
 export default function Search() {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [resultsIsChecked, setResultsIsChecked] = useState([]);
-  const [resultsIsPinned, setResultsIsPinned] = useState([]);
-  const [allChecked, setAllChecked] = useState(true);
-  const [allPinned, setAllPinned] = useState(false);
-  const [pinnedResults, setPinnedResults] = useState([]);
-  const [prompt, setPrompt] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [resultCount, setResultCount] = useState(5); // Default results per page
-  const [resultPage, setResultPage] = useState(0); // Default result page
-  const [searchHistory, setSearchHistory] = useState([]);
-  const [pendingSearch, setPendingSearch] = useState(false);
-  const [bookmarks, setBookmarks] = useState([]);
-  const [chatHistory, setChatHistory] = useState([]);
-  const [filterTitle, setFilterTitle] = useState('');
-  const [filterUrl, setFilterUrl] = useState('');
-  const [editingBookmark, setEditingBookmark] = useState(null);
-  const [editingName, setEditingName] = useState('');
-  const [notifications, setNotifications] = useState([]);
-  const [errorNotifications, setErrorNotifications] = useState([]);
-  const [showSearchHelp, setShowSearchHelp] = useState(false);
-  const [helpHighlight, setHelpHighlight] = useState(false);
-  const [autoTextNotification, setAutoTextNotification] = useState(null);
-  const [showPromptButtons, setShowPromptButtons] = useState(true);
-  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [query, setQuery] = useState(''); // The search query (at the top) input by the user
+  const [results, setResults] = useState([]); // The search results returned from the API
+  const [resultsIsChecked, setResultsIsChecked] = useState([]); // Which results are checked (to be included in the prompt), contains true/false for each result
+  const [resultsIsPinned, setResultsIsPinned] = useState([]); // Which results are pinned (to be included in the next search), contains true/false for each result
+  const [allChecked, setAllChecked] = useState(true); 
+  const [allPinned, setAllPinned] = useState(false); 
+  const [pinnedResults, setPinnedResults] = useState([]); // temporary storage for pinned results between searches
+  const [prompt, setPrompt] = useState(''); // The prompt for the LLM, is initially generated based on the query and prompt type
+  const [isSearching, setIsSearching] = useState(false); // Whether a search is currently in progress to disable some UI elements
+  const [isGenerating, setIsGenerating] = useState(false); // Whether chat generation is currently in progress to disable some UI elements
+  const [resultCount, setResultCount] = useState(5); // Default results per page, currently not changeable in the UI
+  const [resultPage, setResultPage] = useState(0); // Current "page" of results (used for loading additional results)
+  const [searchHistory, setSearchHistory] = useState([]); // The search query history, also stored in localStorage
+  const [pendingSearch, setPendingSearch] = useState(false); // used to trigger a search, when an history item is clicked. When true, a search is triggered in a useEffect
+  const [bookmarks, setBookmarks] = useState([]); // The list of bookmarks, also stored in localStorage
+  const [chatHistory, setChatHistory] = useState([]); // The list of previous chats (max 10), also stored in localStorage
+  const [filterTitle, setFilterTitle] = useState(''); // Filter string (for titles of results)
+  const [filterUrl, setFilterUrl] = useState(''); // Filter string (for URLs of results)
+  const [editingBookmark, setEditingBookmark] = useState(null); // The bookmark currently being edited
+  const [editingName, setEditingName] = useState(''); // The new name for the bookmark being edited
+  const [notifications, setNotifications] = useState([]); // List of notifications to display
+  const [errorNotifications, setErrorNotifications] = useState([]); // List of error notifications to display
+  const [showSearchHelp, setShowSearchHelp] = useState(false); // Flag to show/hide search help
+  const [helpHighlight, setHelpHighlight] = useState(false); // Flag to highlight the help button
+  const [autoTextNotification, setAutoTextNotification] = useState(null); // Notification shown when the first chat request (and response) is generated automatically
+  const [showPromptButtons, setShowPromptButtons] = useState(true); // Whether to show the prompt type buttons
+  const [showFilterMenu, setShowFilterMenu] = useState(false); // Whether to show the filter menu
   const [chat, setChat] = useState(null);
-  const [chatIsInitialized, setChatIsInitialized] = useState(false);
-  const lastMessageRef = useRef(null);
-  const [tempFiles, setTempFiles] = useState([]);
-  const fileInputRef = useRef(null);
-  const [chatWithoutSearch, setChatWithoutSearch] = useState(false);
-  const [promptType, setPromptType] = useState('summary');
+  const [chatIsInitialized, setChatIsInitialized] = useState(false); // Whether the chat has been initialized (used to trigger giving context to the chat)
+  const lastMessageRef = useRef(null); // Ref to the last message in the chat (for auto-scrolling)
+  const [tempFiles, setTempFiles] = useState([]); // Temporary files to be uploaded for context in the chat
+  const fileInputRef = useRef(null); // Ref to the hidden file input element
+  const [chatWithoutSearch, setChatWithoutSearch] = useState(false); // Whether the chat was started directly without a previous search (to skip the notification)
+  const [promptType, setPromptType] = useState('summary'); // The type of prompt selected by the user (summary, bullets, explain, short, custom)
   const [defaultPrompts] = useState([
     "Generiere eine kurze Zusammenfassung der ausgewählten Ergebnisse, um die folgende Frage zu beantworten:",
     "Fasse die wichtigsten Punkte der ausgewählten Ergebnisse in Stichpunkten zusammen, um die folgende Frage zu beantworten:",
     "Beantworte die folgende Frage, indem du die ausgewählten Ergebnisse so erklärst, dass ich sie ohne jegliches Vorwissen verstehen kann:",
     "Beantworte die folgende Frage, indem du die wichtigsten Aussagen der ausgewählten Ergebnisse auf das Wesentliche (maximal 2 Sätze) kürzt:"
-  ]);
-  const [firstTimeLoaded, setFirstTimeLoaded] = useState(true);
+  ]); // Default prompts for each prompt type
+  const [firstTimeLoaded, setFirstTimeLoaded] = useState(true); // Whether the component was just loaded for the first time (to skip some effects)
  
 
-  {/* Searches the DB for results and display them in boxes */}
+  {/* -----------------------------------------------------------------------
+      ------------------ Functions for search funtionality ------------------
+      ----------------------------------------------------------------------- */}
+  // Searches the DB for results and display them in boxes
   const handleSearch = (page = 0) => {
     if (!query || query.trim() === '') {
       return
@@ -61,10 +64,10 @@ export default function Search() {
     setIsSearching(true);
     console.log('Searching for:', query);
     // Add query to localStorage "search history"
-    const history = JSON.parse(localStorage.getItem('searchHistory')) || []; // Retrieve existing history or initialize as an empty array
-    if (!history.includes(query)) { // Avoid duplicates
+    const history = JSON.parse(localStorage.getItem('searchHistory')) || []; 
+    if (!history.includes(query)) { 
       history.push(query);
-      localStorage.setItem('searchHistory', JSON.stringify(history)); // Save updated history
+      localStorage.setItem('searchHistory', JSON.stringify(history));
     }
     let filters = [];
     if (filterTitle.trim() !== '') {
@@ -75,6 +78,7 @@ export default function Search() {
     }
     let searchString = filters.join(' AND ');
 
+    // create the API client and send the search request
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
     let searchQuery = new CivicSage.SearchQuery(query);  
@@ -82,8 +86,8 @@ export default function Search() {
       searchQuery.filterExpression = searchString;
     }
     let opts = {
-      'pageNumber': page, // Number | Page number
-      'pageSize': resultCount // Number | Page size
+      'pageNumber': page, // 0 = first n results, 1 = next n results, etc.
+      'pageSize': resultCount // number of results per page
     };
     apiInstance.searchFiles(searchQuery, opts, (error, data, response) => {
       console.log(JSON.stringify(searchQuery))
@@ -105,6 +109,8 @@ export default function Search() {
           console.error('Failed to parse response:', e);
         }
         let allResults = [];
+        // If this is the first page, include pinned results at the top
+        // if more results are loaded later, all previous results are kept in the same order
         if (page === 0) {
           createNewChat();
           allResults = pinnedResults.concat(parsedResults);
@@ -133,18 +139,14 @@ export default function Search() {
     });
   };
 
-  {/* Save all pinned results, so they will still be displayed in the next search */}
-  useEffect(() => {
-    const pinnedResults = results.filter((_, idx) => resultsIsPinned[idx]);
-    setPinnedResults(pinnedResults);
-  } , [resultsIsPinned]);
-
+  // trigger new search when resultPage changes (for loading more results)
   useEffect(() => {
     if (resultPage >= 1) {
       handleSearch(resultPage);
     }
   }, [resultPage]);
 
+  // trigger new search when pendingSearch is set to true (when an history item is clicked)
   useEffect(() => {
     if (pendingSearch) {
       handleSearch(0);
@@ -152,6 +154,7 @@ export default function Search() {
     }
   }, [query, pendingSearch]);
 
+  // Highlight the search help button (questionmark icon) for 20 seconds after searching
   useEffect(() => {
     if (!isSearching) {
       setHelpHighlight(true);
@@ -162,10 +165,15 @@ export default function Search() {
     } 
   }, [isSearching]);
 
+  // remove highlight for the search help button when page is reloaded
   useEffect(() => {
       setHelpHighlight(false);
   }, []);
 
+  {/* -------------------------------------------------------------------------------
+      - Functions for prompt functionality. The prompt is used to chat with the LLM -
+      ------------------------------------------------------------------------------- */}
+  // When the query changes, it is added to the prompt (in addition to the default prompt based on the prompt type)                                                                
   useEffect(() => {
     let promptText = '';
     switch (promptType) {
@@ -187,6 +195,7 @@ export default function Search() {
     setPrompt(promptText);
   }, [query]);
 
+  // When the prompt type changes, old default prompts (if any) are replaced with the new default prompt. Rest of the prompt is kept as is.
   useEffect(() => {
     if (promptType === '') return; // Do nothing if no prompt type is selected
     let defaultPrompt = '';
@@ -216,6 +225,7 @@ export default function Search() {
     setPrompt(newPrompt);
   }, [promptType]);
 
+  // Fixes some inconsistencies when the prompt is edited manually and page is reloaded. May not be necessary anymore.
   useEffect(() => {
     if (firstTimeLoaded) {
       setFirstTimeLoaded(false);
@@ -229,30 +239,35 @@ export default function Search() {
     };
   }, [prompt]);
 
+  {/* ------------------------------------------------------------------------------------------------
+      - Functions that handle search history, bookmarks and chat history, all stored in localStorage -
+      ------------------------------------------------------------------------------------------------ */}
+  // loads search history and opens the menu
   const handleShowHistory = () => {
     const history = JSON.parse(localStorage.getItem('searchHistory')) || [];
     setSearchHistory(history);
   };
 
+  // When an item in the history is clicked, set it as the current query and trigger a search
   const handleHistoryItemClick = (item) => {
     setQuery(item);
     setPendingSearch(true);
   };
 
+  // Remove from history
   const handleDeleteHistoryItem = (name) => {
-    // Remove from history
     const updatedHistory = searchHistory.filter(item => item !== name);
     setSearchHistory(updatedHistory);
-
-    // Remove from localStorage
     localStorage.setItem('searchHistory', JSON.stringify(updatedHistory));
   };
 
+  // loads bookmarks and opens the menu
   const handleShowBookmarks = () => {
     const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
     setBookmarks(bookmarks);
   };
 
+  // When an item in the bookmarks is clicked, set it as the current query, results and prompt
   const handleBookmarksItemClick = (bookmark) => {
     setQuery(bookmark.query);
     setResults(bookmark.results);
@@ -273,6 +288,7 @@ export default function Search() {
     });
   }
 
+  // Save everything to a bookmark
   const handleSaveBookmark = () => {
     const bookmark = {
       name: query,
@@ -289,16 +305,14 @@ export default function Search() {
     showNotification('Lesezeichen wurde gespeichert!');
   }
 
+  // Delete a bookmark
   const handleDeleteBookmark = (name) => {
-    // Remove from bookmarks
     const updatedBookmarks = bookmarks.filter(bookmark => bookmark.name !== name);
     setBookmarks(updatedBookmarks);
-
-    // Remove from localStorage
     localStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks));
   };
 
-  // Save handler
+  // Update bookmark name
   const handleEditBookmarkSubmit = (e, oldName) => {
     e.preventDefault();
     if (!editingName.trim()) return;
@@ -312,6 +326,7 @@ export default function Search() {
     handleShowBookmarks(); // Refresh the bookmark list
   };
 
+  // loads chat history and opens the menu
   const handleShowChatHistory = () => {
     const savedChatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
     const cleanedHistory = savedChatHistory.filter(
@@ -320,6 +335,7 @@ export default function Search() {
     setChatHistory(cleanedHistory);
   };
 
+  // When an item in the chat history is clicked, load the chat from the server
   const handleChatHistoryItemClick = (item) => {
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
@@ -334,7 +350,7 @@ export default function Search() {
     });
   };
 
-  // Add chat to localStorage "text history"
+  // function gets called when a new chat is created or an existing chat is updated. Adds it to history (max 10 chats)
   const addToChatHistory = (data) => {
     const history = JSON.parse(localStorage.getItem('chatHistory')) || []; // Retrieve existing history or initialize as an empty array
     const descriptor = query && query.trim() ? query : prompt;
@@ -349,6 +365,7 @@ export default function Search() {
     }
   }
 
+  // Delete a chat from the server (can't be manually called by the user right now, only when chat history exceeds 10 items)
   const deleteChat = (chatId) => {
     try{
       const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
@@ -364,7 +381,11 @@ export default function Search() {
     catch(e){}    
   }
 
-  {/* Functions that handle checked functionality */}
+
+  {/* ----------------------------------------------------------------------------------------------------------------------
+      - Functions that handle checked functionality. Search results can be checked/unchecked to be in/excluded in the chat -
+      ---------------------------------------------------------------------------------------------------------------------- */}
+  // When a single checkbox is clicked, toggle its state in resultsIsChecked
   const handleCheckboxChange = (idx) => {
     setResultsIsChecked(prev => {
       const updated = [...prev];
@@ -373,6 +394,7 @@ export default function Search() {
     });
   };
 
+  // When the "Check All" button is clicked, check/uncheck all results using the functions below
   const handleCheckAllChange = () => {
     if (allChecked) {
       handleUncheckAll();
@@ -383,18 +405,23 @@ export default function Search() {
     }
   }
 
+  // Check all results
   const handleCheckAll = () => {
-    const allChecked = Array(resultsIsChecked.length).fill(true); // Check all results
+    const allChecked = Array(resultsIsChecked.length).fill(true); 
     setResultsIsChecked(allChecked);
   };
 
+  // Uncheck all results
   const handleUncheckAll = () => {
-    const allUnchecked = Array(resultsIsChecked.length).fill(false); // Uncheck all results
+    const allUnchecked = Array(resultsIsChecked.length).fill(false); 
     setResultsIsChecked(allUnchecked);
   };
 
 
-  {/* Functions that handle pin functionality */}
+  {/* ---------------------------------------------------------------------------------------------------------
+      - Functions that handle pin functionality. Search results can be pinned to keep them for later searches -
+      --------------------------------------------------------------------------------------------------------- */}
+  // When a single pin is clicked, toggle its state in resultsIsPinned 
   const handlePinToggle = (index) => {
     setResultsIsPinned(prev => {
       const updated = [...prev];
@@ -403,6 +430,7 @@ export default function Search() {
     });
   }
 
+  // When the "Pin All" button is clicked, pin/unpin all checked results using the functions below
   const handlePinAllToggle = () => {
     if (allPinned) {
       handleUnpinAll();
@@ -413,6 +441,7 @@ export default function Search() {
     }
   }
 
+  // Pin all results that are currently checked
   const handlePinAllChecked = () => {
     const updatedResultsIsPinned = [...resultsIsPinned];
     resultsIsChecked.forEach((isChecked, idx) => {
@@ -423,25 +452,46 @@ export default function Search() {
     setResultsIsPinned(updatedResultsIsPinned);
   };
 
+  // Unpin all results
   const handleUnpinAll = () => {
     const updatedResultsIsPinned = [resultsIsPinned.length].fill(false); // Unpin all results
     setResultsIsPinned(updatedResultsIsPinned);
   };
 
+  // Save all pinned results, so they will still be displayed in the next search
+  useEffect(() => {
+    const pinnedResults = results.filter((_, idx) => resultsIsPinned[idx]);
+    setPinnedResults(pinnedResults);
+  } , [resultsIsPinned]);
+  
+  
+  {/* -------------------------------------------------------------------------------------------------------------------
+      - helper methods for the chat for file upload. Temporary files are only kept for the duration of the chat session -
+      ------------------------------------------------------------------------------------------------------------------- */}
+  // Trigger the hidden file input when the "Add File" button is clicked
   const handleTemporaryFileButtonClick = () => {
     if (fileInputRef.current) fileInputRef.current.click();
   };
 
+  // When a file is selected, add it to the tempFiles array
   const handleTemporaryFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) setTempFiles(prev => [...prev, file]);
   };
 
+  // Remove a temporary file from the list
   const handleDeleteTempFile = (fileName) => {
     setTempFiles(prev => prev.filter(file => file.name !== fileName));
   };
 
-  // Create a new chat without starting it immediately
+  // When the chat got a response, clear the temporary files (so they are not uploaded again)
+  useEffect(() => {
+    if (!isGenerating) {
+      setTempFiles([]); 
+    }
+  }, [isGenerating]);
+
+  // Create a new chat without starting it immediately. Only used when a new chat is manually requested by the user
   const handleNewChat = () => {
     console.log("Starting new chat...");
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
@@ -458,8 +508,11 @@ export default function Search() {
     });
   };
 
-  {/* Four methods together: Takes all checked boxes and tells the LLM to answer the prompt based off of it
-      1: create a new Chat object*/}
+  {/* ---------------------------------------------------------------------------------------------------------------------------------------
+      - Methods for chat functionality: Takes all checked search results and tells the LLM to answer the prompt based off of it             -
+      - These are triggered in order, but can be started at any point (e.g. if the chat is already created, step 2 will be called directly) -
+      --------------------------------------------------------------------------------------------------------------------------------------- */}
+  // Step 1: create a new Chat object
   const createNewChat = () => {
     console.log('Generating text with prompt:', prompt);
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
@@ -478,6 +531,7 @@ export default function Search() {
     });
   }
 
+  // when the chat is started automatically after a search, display a notification, then continue with step 2
   useEffect(() => {
     if (chatIsInitialized && chat) {
       giveContextToChat();
@@ -489,7 +543,7 @@ export default function Search() {
     }
   }, [chatIsInitialized, chat]);
 
-  {/* 2: give the chat context (the checked boxes) */}
+  // Step 2: give the chat its context (the checked boxes)
   const giveContextToChat = () => {
     setIsGenerating(true);
 
@@ -524,7 +578,7 @@ export default function Search() {
     });
   }
 
-  {/* 3: check if there are temporary files to upload as additional context */}
+  // Step 3: check if there are temporary files to upload as additional context
   const checkForAdditionalContext = () => {
     if (tempFiles.length === 0) {
       sendPromptToChat(null);
@@ -551,7 +605,7 @@ export default function Search() {
     });
   }
 
-  {/* 4: send the prompt to the chat */}
+  // Step 4: send the prompt to the LLM to generate the answer
   const sendPromptToChat = (tempFileIds) => {
     console.log('Generating text with prompt: ', prompt);
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
@@ -584,18 +638,7 @@ export default function Search() {
     });
   }
 
-  useEffect(() => {
-    if (!isGenerating) {
-      setTempFiles([]); // Clear temporary files after upload
-    }
-  }, [isGenerating]);
-
-  useEffect(() => {
-    if (lastMessageRef.current) {
-      lastMessageRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [chat?.messages?.length, isGenerating]); // runs when messages change
-
+  // Step 5: reset the prompt to the default prompt based on the prompt type
   const resetPrompt = () => {
     switch (promptType) {
       case 'summary':
@@ -615,6 +658,18 @@ export default function Search() {
     }
   }
 
+  // Auto-scroll to the last message when a new message is added
+  useEffect(() => {
+    if (lastMessageRef.current) {
+      lastMessageRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chat?.messages?.length, isGenerating]); // runs when messages change
+
+
+  {/* ---------------------------------------------------------------------------------------------------
+      ---------------------------- Helper Functions for notifications -----------------------------------
+      --------------------------------------------------------------------------------------------------- */}
+  // used to display short notifications. Background color and duration can be customized
   function showNotification(message, color = 'bg-green-500', timer = 5000) {
     const id = Date.now() + Math.random();
     setNotifications(prev => [...prev, { id, message, color }]);
@@ -623,17 +678,29 @@ export default function Search() {
     }, timer);
   }
 
+  // used to display error notifications. Must be closed manually
   function showErrorNotification(message) {
     const id = Date.now() + Math.random();
     setErrorNotifications(prev => [...prev, { id, message, color: 'bg-red-500' }]);
-    // Do not auto-hide error notifications
   }
+
+
+
+
+
+
+
+
+
+
+
 
 
   return (
     <div className="h-screen flex flex-col">
       <h1 className="sr-only">CivicSage – Suchseite</h1>
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center gap-2">
+      {/* Notification container */}
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center gap-2">
         {errorNotifications.map(n => (
           <div key={n.id} className={`${n.color} text-white px-6 py-3 rounded shadow-lg relative w-full`}>
             {n.message}
@@ -663,7 +730,10 @@ export default function Search() {
           </div>
         ))}
       </div>
-      {/* Sticky Search Bar */}
+{/* ----------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------- Top part (Search Bar and everything) -----------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------- */}
+      {/* Search Bar */}
       <div className="bg-white z-10 sticky top-0 p-4 shadow">
         <form
           className="flex flex-row items-center"
@@ -671,7 +741,7 @@ export default function Search() {
         >
           {/* Search History */}
           <Menu as="div" className="relative inline-block text-left">
-            {/* Dropdown Button */}
+            {/* Dropdown Button of search History */}
             <MenuButton
               className="bg-gray-500 text-white px-2 py-2 rounded cursor-pointer"
               onClick={handleShowHistory}
@@ -683,7 +753,7 @@ export default function Search() {
               </svg>
             </MenuButton>
 
-            {/* Dropdown Content */}
+            {/* Dropdown Content of search History */}
             <MenuItems className="absolute mt-2 bg-white border border-grey-300 outline-none rounded shadow-lg p-4 w-64 overflow-y-auto max-h-64">
               <h3 className="text-lg font-bold mb-2">Suchverlauf:</h3>
               {searchHistory.length > 0 ? (
@@ -723,9 +793,9 @@ export default function Search() {
               )}
             </MenuItems>
           </Menu>
-          {/* Lesezeichen */}
+          {/* Bookmarks */}
           <Menu as="div" className="relative inline-block text-left">
-            {/* Dropdown Button */}
+            {/* Dropdown Button for Bookmarks */}
             <MenuButton
               className="bg-gray-500 text-white p-2 ml-2 rounded cursor-pointer"
               onClick={handleShowBookmarks}
@@ -737,7 +807,7 @@ export default function Search() {
               </svg>
             </MenuButton>
 
-            {/* Dropdown Content */}
+            {/* Dropdown Content for Bookmarks */}
             <MenuItems className="absolute mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 w-64 overflow-y-auto max-h-64 outline-none">
               <h3 className="text-lg font-bold mb-2">Lesezeichen:</h3>
               {bookmarks.length > 0 ? (
@@ -816,6 +886,7 @@ export default function Search() {
               )}
             </MenuItems>
           </Menu>
+          {/* Search Input field */}
           <input
             type="text"
             value={query}
@@ -882,6 +953,9 @@ export default function Search() {
         </form>
       </div>
 
+
+
+
       {/*bottom part */}
       <div className="flex-1 flex flex-col min-h-0 bg-gray-300 p-3 h-[calc(100vh-theme(spacing.14))]">
         <PanelGroup 
@@ -889,6 +963,9 @@ export default function Search() {
           className="flex-1 min-h-0" 
           tabIndex={-1}
         >
+{/* ----------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------- Bottom left part (Search Results and everything) -----------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------- */}
           {/* Results Section */}
           <Panel defaultSize={50} minSize={20} className="flex flex-col h-full min-h-0">
             <div className="bg-gray-50 shadow p-4 h-full flex flex-col min-h-0">
@@ -910,6 +987,7 @@ export default function Search() {
                     <span className="ml-2">Ergebnisse laden</span>
                   </label>
                   */}
+                  {/* Check/Uncheck All Checkbox */}
                   <input
                     type="checkbox"
                     checked={allChecked ?? true}
@@ -924,6 +1002,7 @@ export default function Search() {
                     title='Alle Ergebnisse auswählen/abwählen'
                     aria-label={allChecked ? "Alle Ergebnisse abwählen" : "Alle Ergebnisse auswählen"}
                   />
+                  {/* Pin/Unpin All Button */}
                   <button
                     onClick={() => handlePinAllToggle()}
                     className={`absolute top-2 left-9 cursor-pointer`}
@@ -946,6 +1025,7 @@ export default function Search() {
                   </button>
                 </div>
                 <div className="pb-2 flex flex-row items-center justify-end">
+                  {/* Save Bookmark Button */}
                   <button
                     onClick={handleSaveBookmark}
                     className={`px-2 py-2 rounded text-white ml-16 ${results.length === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-gray-500 cursor-pointer'}`}
@@ -954,7 +1034,7 @@ export default function Search() {
                     Als Lesezeichen speichern
                   </button>
 
-                  {/* Help Button and Popup */}
+                  {/* Search Help Button and Popup */}
                   <button
                     onClick={() => {
                       setShowSearchHelp(prev => !prev);
@@ -989,7 +1069,8 @@ export default function Search() {
                   )}
                 </div>
               </div>
-
+              
+              {/* Results List */}
               <div className="flex-1 overflow-y-auto min-h-0">
               {results.map((result, index) => {
                 return(
@@ -1044,12 +1125,14 @@ export default function Search() {
                           {result.uploadDate ? new Date(result.uploadDate).toLocaleDateString('de-DE') : 'Unbekannt'}
                         </span>
                       </div>
+                      {/* Score display disabled for now, as it confuses users more than it helps */}
                       {/*<span className="ml-2 text-gray-400">Score: {result.score?.toFixed(2)}</span>*/}
                     </div>
                     <div className="text-sm text-left">{resultsIsChecked[index] && result.text}</div>
                   </div>
                 )
               })}
+              {/* Load more results button */}
               <button
                 onClick={() => setResultPage(resultPage + 1)}
                 className="mt-4 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
@@ -1064,15 +1147,20 @@ export default function Search() {
             </div>
           </Panel>
 
+
+
           <PanelResizeHandle 
             className="w-3 bg-gray-300" 
             aria-label="Griff zum Anpassen der Größe des beiden Bereiche"
           />
           
-          <Panel defaultSize={50} minSize={20} className="flex flex-col h-full min-h-0">
-          {/* Text Area */}
 
+{/* ----------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------- Bottom right part (Chat and everything) ------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------- */}
+          <Panel defaultSize={50} minSize={20} className="flex flex-col h-full min-h-0">
             <div className="bg-gray-50 shadow h-full p-4 flex flex-col min-h-0">
+              {/* Notification, when first chat is auto-generated, because a search has triggered it */}
               {autoTextNotification && (
                 <div className={`relative mb-2 border ${autoTextNotification.color} text-white px-4 py-2 rounded text-sm text-left`}>
                   <button
@@ -1087,6 +1175,7 @@ export default function Search() {
                   {autoTextNotification.message}
                 </div>
               )}
+              {/* Text Area, where the chat is displayed */}
               <div className="flex-1 w-full h-full overflow-y-auto p-2 mb-1 resize-none border border-gray-300 rounded text-left block min-h-0">
                 {chat ? (
                   <>
@@ -1169,6 +1258,7 @@ export default function Search() {
               </div>
               
               <div className="flex flex-row items-center justify-between mb-1">
+                {/* Buttons for default prompts */}
                 {showPromptButtons && (
                   <div className="flex flex-row flex-wrap mb-1 gap-1">
                     <button
@@ -1224,6 +1314,7 @@ export default function Search() {
                     </button>
                   </div>
                 )}
+                {/* Toggle Button to show/hide the prompt buttons */}
                 <div className="flex flex-row justify-end flex-1">
                   <button
                     className="px-2 text-gray-700 text-xs"
@@ -1235,7 +1326,8 @@ export default function Search() {
                   </button>
                 </div>
               </div>
-
+              
+              {/* Display the names of the temporary files that will be sent as context */}
               <span>
                 {tempFiles.length > 0 && (
                   <>
@@ -1257,19 +1349,21 @@ export default function Search() {
                   </>
                 )}
               </span>
-
+              
+              {/* Form to enter a new prompt for the chat*/}
               <form
                 className="flex flex-row items-stretch"
                 onSubmit={(e) => { e.preventDefault(); giveContextToChat(); }}
               >
                 <div className='flex flex-col'>
-                  {/* Neuer Chat Button */}
+                  {/* Hidden File Input */}
                   <input
                     type="file"
                     ref={fileInputRef}
                     onChange={handleTemporaryFileUpload}
                     className="hidden"
                   />
+                  {/* Neuer Chat Button */}
                   <button
                     type="button"
                     className="flex h-[3.25rem] w-full px-2 cursor-pointer justify-center items-center rounded-tl border border-r-0 border-gray-300 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
@@ -1285,7 +1379,7 @@ export default function Search() {
                   </button>
                   {/* Text History */}
                   <Menu as="div" className="relative w-full inline-block text-left">
-                    {/* Dropdown Button */}
+                    {/* Dropdown Button for Text History */}
                     <MenuButton
                       className="flex text-white h-[3.25rem] w-full px-2 cursor-pointer justify-center items-center rounded-bl border border-r-0 border-gray-500 bg-gray-500 disabled:opacity-50"
                       onClick={handleShowChatHistory}
@@ -1297,7 +1391,7 @@ export default function Search() {
                       </svg>
                     </MenuButton>
 
-                    {/* Dropdown Content */}
+                    {/* Dropdown Content for Text History */}
                     <MenuItems className="absolute left-0 w-[calc(30vw-4rem)] z-10 bottom-full mb-1 bg-white border border-gray-300 rounded shadow-lg p-4 outline-none">
 
                       <h3 className="text-lg font-bold mb-2">Textverlauf:</h3>
@@ -1324,7 +1418,7 @@ export default function Search() {
                     </MenuItems>
                   </Menu>
                 </div>
-                {/* Textarea */}
+                {/* Input field for user prompt to the chat */}
                 <div className="relative w-full">
                   <textarea
                     value={prompt}

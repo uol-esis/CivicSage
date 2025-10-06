@@ -7,16 +7,7 @@ export default function UploadComponent({setFiles, setValid, reset}) {
     const directoryInputRef = useRef(null);
     const [isValid, setIsValid] = useState(false);
 
-
-
-    useEffect(() => {
-      console.log("Selected files:", selectedFiles);
-        if (selectedFiles && isValid){
-            setFiles(selectedFiles);
-            setValid(true);
-        }
-    }, [isValid]);
-
+    {/* When the selected files contain a valid file type, set the isValid state to true */}
     useEffect(() => {
       const isValid = selectedFiles.some(file => 
         file.name.endsWith(".pdf") || 
@@ -27,13 +18,22 @@ export default function UploadComponent({setFiles, setValid, reset}) {
       setIsValid(isValid);
     }, [selectedFiles]);
 
+    {/* When the isValid state changes and is true, set the files in the parent component */}
+    useEffect(() => {
+      console.log("Selected files:", selectedFiles);
+      if (selectedFiles && isValid) {
+        setFiles(selectedFiles);
+        setValid(true);
+        }
+    }, [isValid]);
 
+    {/* Reset selected files when reset is called from Upload page */}
     useEffect(() => {
       setSelectedFiles([]);
       setIsValid(false);
-      // reset other internal state if needed
     }, [reset]);
 
+    {/* Drag and drop handlers */}
     const handleDragOver = (event) => {
         event.preventDefault();
     };
@@ -44,7 +44,7 @@ export default function UploadComponent({setFiles, setValid, reset}) {
         setSelectedFile(file);
     };
 
-    {/* helper functions */ }
+    {/* when files are selected, selectedFiles state is set */ }
     const handleFileChange = (event) => {
       const files = event.target.files; // FileList object
       console.log("Files selected:", files);
