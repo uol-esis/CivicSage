@@ -101,15 +101,15 @@ export default function Upload() {
     });
   };
 
+  /**
+   * When the UID is set, tells the calls the indexFiles function, which tells the server to index the file
+   */
   useEffect(() => {
     if (fileUIDs.length > 0) {
       indexFiles();
     }
   }, [fileUIDs]);
 
-  /**
-   * When the UID is set, tells the server to index the file
-   */
   const indexFiles = () => {
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
@@ -139,6 +139,7 @@ export default function Upload() {
     });
   }
 
+  {/* General function used to display short notifications. Background color and duration can be customized */}
   function showNotification(message, color = 'bg-green-500', timer = 5000) {
     const id = Date.now() + Math.random();
     setNotifications(prev => [...prev, { id, message, color }]);
@@ -146,16 +147,18 @@ export default function Upload() {
       setNotifications(prev => prev.filter(n => n.id !== id));
     }, timer);
   }
-
+  
+  {/* General function used to display error notifications. Must be closed manually */}
   function showErrorNotification(message) {
     const id = Date.now() + Math.random();
     setErrorNotifications(prev => [...prev, { id, message, color: 'bg-red-500' }]);
-    // Do not auto-hide error notifications
   }
+
 
   return (
   <div className="h-screen flex-1 flex-col overflow-y-auto">
     <h1 className="sr-only">CivicSage – Hochladeseite</h1>
+    {/* Notification container */}
     <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center gap-2">
       {errorNotifications.map(n => (
         <div key={n.id} className={`${n.color} text-white px-6 py-3 rounded shadow-lg relative w-full`}>
@@ -186,7 +189,7 @@ export default function Upload() {
         </div>
       ))}
     </div>
-    {/* Input Field */}
+    {/* Input Field for Website URL */}
     <div className="flex flex-col justify-between mt-[3vh] mx-4 p-4 min-h-[30vh] bg-white shadow rounded-[10px]">
       <h2 className="text-xl font-bold mb-4">
         Geben Sie einen Link ein, um den Inhalt der Webseite zur Datenbank hinzuzufügen:

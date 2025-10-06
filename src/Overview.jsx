@@ -1,12 +1,14 @@
 import React, {useState, useEffect} from 'react';
 import * as CivicSage from 'civic_sage';
 
+{/* Overview page showing all indexed files and websites with search, update, and delete functionality */}
 export default function Overview() {
   const [content, setContent] = useState([]);
   const [search, setSearch] = useState('');
   const [notifications, setNotifications] = useState([]);
   const [errorNotifications, setErrorNotifications] = useState([]);  
 
+  {/* Fetch all indexed sources on component mount */}
   useEffect(() => {
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
@@ -22,6 +24,7 @@ export default function Overview() {
     });
   }, []);
 
+  {/* Handle deletion of an entry (file or website) */}
   const handleDeleteEntry = (id) => {
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
@@ -41,8 +44,8 @@ export default function Overview() {
     });
   }
 
+  {/* Handle updating of a website entry */}
   const handleUpdateWebsite = (ids) => {
-    //showErrorNotification('Update functionality is not implemented yet. IDS: ' + ids.join(', '));
     console.log('Update functionality is not implemented yet. IDS:', ids);
     const client = new CivicSage.ApiClient(import.meta.env.VITE_API_ENDPOINT);
     let apiInstance = new CivicSage.DefaultApi(client);
@@ -67,7 +70,7 @@ export default function Overview() {
     });
   }
 
-
+  {/* Filter files based on search input. This is the actual constant that is used to display the files */}
   const filteredFiles = content.files?.filter(
     file =>
       (file.fileName && file.fileName.toLowerCase().includes(search.toLowerCase())) ||
@@ -84,6 +87,7 @@ export default function Overview() {
       )
   ) || [];
 
+  {/* Filter websites based on search input. This is the actual constant that is used to display the websites */}
   const filteredWebsites = content.websites?.filter(
     website =>
       (website.title && website.title.toLowerCase().includes(search.toLowerCase())) ||
@@ -100,6 +104,7 @@ export default function Overview() {
       )
   ) || [];
 
+  {/* General function used to display short notifications. Background color and duration can be customized */}
   function showNotification(message, color = 'bg-green-500', timer = 5000) {
     const id = Date.now() + Math.random();
     setNotifications(prev => [...prev, { id, message, color }]);
@@ -108,15 +113,17 @@ export default function Overview() {
     }, timer);
   }
 
+  {/* General function used to display error notifications. Must be closed manually */}
   function showErrorNotification(message) {
     const id = Date.now() + Math.random();
     setErrorNotifications(prev => [...prev, { id, message, color: 'bg-red-500' }]);
-    // Do not auto-hide error notifications
   }
+
 
   return (
   <div className="flex flex-col justify-between m-4 p-4 h-full bg-white shadow rounded-[10px]">
     <h1 className="sr-only">CivicSage – Übersichtsseite</h1>
+    {/* Notification container */}
     <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center gap-2">
       {errorNotifications.map(n => (
         <div key={n.id} className={`${n.color} text-white px-6 py-3 rounded shadow-lg relative w-full`}>
@@ -147,6 +154,8 @@ export default function Overview() {
         </div>
       ))}
     </div>
+
+    {/* Main content area */}
     <div className="flex flex-row items-center justify-between">
       <div />
       <h2 className="text-xl font-bold text-center">
@@ -168,9 +177,11 @@ export default function Overview() {
       />
       </div>
     </div>
+    {/* List of all files and websites, with source, date and update, delete buttons */}
     <div className="overflow-y-auto h-full">
       {filteredFiles.length > 0 || filteredWebsites.length > 0 ? (
         <>
+          {/* files */}
           {filteredFiles.map((item, index) => (
             <div
               key={`file-${index}`}
@@ -213,6 +224,7 @@ export default function Overview() {
               </button>
             </div>
           ))}
+          {/* websites */}
           {filteredWebsites.map((item, index) => (
             <div
               key={`website-${index}`}
