@@ -1361,6 +1361,7 @@ export default function Search() {
                     type="file"
                     ref={fileInputRef}
                     onChange={handleTemporaryFileUpload}
+                    aria-label='Verstecktes Datei-Upload Eingabefeld'
                     className="hidden"
                   />
                   {/* Neuer Chat Button */}
