@@ -3,9 +3,9 @@ name: Test Project
 on:
   push:
     paths:
-      - src/**
-      - pom.xml
-      - .github/workflows/verify.yaml
+      - backend/src
+      - backend/pom.xml
+      - .github/workflows/backend-maven-verify.yaml
   workflow_call:
 
 jobs:
@@ -21,4 +21,6 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Test with Maven
-        run: ./mvnw --batch-mode --update-snapshots verify
+        run: |
+          cd backend
+          ./mvnw --batch-mode --update-snapshots verify

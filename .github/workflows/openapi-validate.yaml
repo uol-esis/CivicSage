@@ -2,6 +2,9 @@ name: Validate OpenAPI Document
 
 on:
   push:
+    paths:
+      - openapi/**
+      - .github/workflows/openapi-validate.yaml
   pull_request:
 
 jobs:
@@ -11,6 +14,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Validate
         run: |
+          cd openapi
           ./bundle.sh
           git diff --exit-code --name-only
           ./validate.sh

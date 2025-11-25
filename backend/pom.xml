@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.5</version>
+        <version>3.5.8</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>de.uol.pgdoener</groupId>
@@ -198,9 +198,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>
-                                https://raw.githubusercontent.com/uol-esis/CivicSage-OpenAPI/v0.7.0/openapi.yaml
-                            </inputSpec>
+                            <inputSpec>../openapi/openapi.yaml</inputSpec>
                             <generatorName>spring</generatorName>
                             <apiPackage>de.uol.pgdoener.civicsage.api</apiPackage>
                             <modelPackage>de.uol.pgdoener.civicsage.business.dto</modelPackage>
