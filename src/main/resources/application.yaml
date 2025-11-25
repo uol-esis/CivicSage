@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: CivicSage
+  servlet:
+    multipart:
+      max-file-size: 10MB
+  jpa:
+    hibernate:
+      ddl-auto: update
+  ai:
+    # https://docs.spring.io/spring-ai/reference/api/chat/dmr-chat.html
+    openai:
+      base-url: http://localhost:12434/engines
+      api-key: test
+      embedding:
+        options:
+          model: ai/mxbai-embed-large
+      chat:
+        options:
+          model: ai/smollm2
+    model:
+      embedding: openai
+    retry:
+      max-attempts: 2
+  cache:
+    cache-names:
+      - embeddingSearch
+    caffeine:
+      spec: maximumSize=50,expireAfterAccess=600s
+server:
+  port: 8080
+civicsage:
+  ai:
+    chat:
+      model:
+        context-length: 8000
+    embedding:
+      model:
+        context-length: 256
+    vector-store:
+      type: mariadb
+      initialize-schema: true
+  security:
+    allowed-origins:
+      - "*"
