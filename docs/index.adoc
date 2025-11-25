@@ -1,0 +1,2017 @@
+= CivicSage
+team@openapitools.org
+0.7.0
+:toc: left
+:numbered:
+:toclevels: 4
+:source-highlighter: highlightjs
+:keywords: openapi, rest, CivicSage
+:specDir: 
+:snippetDir: 
+:generator-template: v1 2019-12-20
+:info-url: https://openapi-generator.tech
+:app-name: CivicSage
+
+[abstract]
+.Abstract
+CivicSage is a service that allows you to index files and websites. 
+
+
+// markup not found, no include::{specDir}intro.adoc[opts=optional]
+
+
+
+== Endpoints
+
+
+[.Default]
+=== Default
+
+
+[.deleteChat]
+==== deleteChat
+
+`DELETE /completions/chat`
+
+Delete a chat
+
+===== Description
+
+
+
+
+// markup not found, no include::{specDir}completions/chat/DELETE/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| chatId
+| The unique identifier for the chat session 
+| X
+| null
+| 
+
+|===
+
+
+===== Return Type
+
+
+
+-
+
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 204
+| Chat deleted successfully
+|  <<>>
+
+
+| 400
+| Bad request
+|  <<>>
+
+
+| 404
+| Chat not found
+|  <<>>
+
+
+| 500
+| Internal server error
+|  <<>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}completions/chat/DELETE/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}completions/chat/DELETE/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :completions/chat/DELETE/DELETE.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}completions/chat/DELETE/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.deleteIndexedSource]
+==== deleteIndexedSource
+
+`DELETE /sources`
+
+Delete indexed source
+
+===== Description
+
+This endpoint allows you to delete an indexed source by its ID. The ID can be either a fileId or a websiteId. If deleting a file, the file will be removed from storage. 
+
+
+// markup not found, no include::{specDir}sources/DELETE/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| id
+| The identifier for the source to delete. This can be either a fileId or a websiteId.  
+| X
+| null
+| 
+
+|===
+
+
+===== Return Type
+
+
+
+-
+
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 204
+| Source deleted successfully
+|  <<>>
+
+
+| 404
+| Source not found
+|  <<>>
+
+
+| 500
+| Internal server error
+|  <<>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}sources/DELETE/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}sources/DELETE/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :sources/DELETE/DELETE.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}sources/DELETE/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.downloadFile]
+==== downloadFile
+
+`GET /files`
+
+Download file
+
+===== Description
+
+This endpoint provides the specified file as a download. 
+
+
+// markup not found, no include::{specDir}files/GET/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| id
+| The identifier for the file to download.  
+| X
+| null
+| 
+
+|===
+
+
+===== Return Type
+
+
+<<File>>
+
+
+===== Content Type
+
+* application/octet-stream
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| OK
+|  <<File>>
+
+
+| 404
+| File not found
+|  <<>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}files/GET/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}files/GET/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :files/GET/GET.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}files/GET/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.getAllIndexedSources]
+==== getAllIndexedSources
+
+`GET /sources`
+
+Get all indexed sources
+
+===== Description
+
+This endpoint retrieves a list of all indexed sources, including files and websites. 
+
+
+// markup not found, no include::{specDir}sources/GET/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| filterExpression
+| An optional filter expression to filter the indexed sources. This can be used to filter results based on specific criteria. The syntax of the filter expression can be found in the server documentation.  
+| -
+| null
+| 
+
+|===
+
+
+===== Return Type
+
+<<getAllIndexedSources_200_response>>
+
+
+===== Content Type
+
+* application/json
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Indexed sources retrieved successfully
+|  <<getAllIndexedSources_200_response>>
+
+
+| 500
+| Internal server error
+|  <<>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}sources/GET/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}sources/GET/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :sources/GET/GET.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}sources/GET/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.getChat]
+==== getChat
+
+`GET /completions/chat`
+
+Create or retrieve a chat
+
+===== Description
+
+
+
+
+// markup not found, no include::{specDir}completions/chat/GET/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| chatId
+| The unique identifier for the chat session 
+| -
+| null
+| 
+
+|===
+
+
+===== Return Type
+
+<<chat>>
+
+
+===== Content Type
+
+* application/json
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Chat retrieved successfully
+|  <<chat>>
+
+
+| 201
+| Chat created successfully
+|  <<chat>>
+
+
+| 400
+| Bad request
+|  <<>>
+
+
+| 500
+| Internal server error
+|  <<>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}completions/chat/GET/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}completions/chat/GET/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :completions/chat/GET/GET.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}completions/chat/GET/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.getMetadataKeys]
+==== getMetadataKeys
+
+`GET /system/metadata-keys`
+
+Get metadata keys
+
+===== Description
+
+This endpoint provides the metadata keys that are supported for searching. This list includes custom keys provided via additional properties. All keys are complete. So there is no need to add `additionalProperties.` for custom keys. 
+
+
+// markup not found, no include::{specDir}system/metadata-keys/GET/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+
+
+
+
+
+===== Return Type
+
+<<getMetadataKeys_200_response>>
+
+
+===== Content Type
+
+* application/json
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Metadata keys retrieved successfully
+|  <<getMetadataKeys_200_response>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}system/metadata-keys/GET/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}system/metadata-keys/GET/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :system/metadata-keys/GET/GET.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}system/metadata-keys/GET/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.getSystemInfo]
+==== getSystemInfo
+
+`GET /system/info`
+
+Get system information
+
+===== Description
+
+This endpoint provides information about the system. 
+
+
+// markup not found, no include::{specDir}system/info/GET/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+
+
+
+
+
+===== Return Type
+
+<<systemInfo>>
+
+
+===== Content Type
+
+* application/json
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| System information retrieved successfully
+|  <<systemInfo>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}system/info/GET/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}system/info/GET/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :system/info/GET/GET.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}system/info/GET/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.indexFiles]
+==== indexFiles
+
+`POST /index/file`
+
+Index new files
+
+===== Description
+
+This endpoint allows you to index new files by uploading them. 
+
+
+// markup not found, no include::{specDir}index/file/POST/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| IndexFiles_request_inner
+|  <<IndexFiles_request_inner>>
+| X
+| 
+| 
+
+|===
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Indexing successful
+|  <<>>
+
+
+| 202
+| Indexing accepted, processing in background since it takes too long
+|  <<>>
+
+
+| 400
+| Bad request
+|  <<>>
+
+
+| 409
+| File already indexed
+|  <<>>
+
+
+| 500
+| Internal server error
+|  <<>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}index/file/POST/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}index/file/POST/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :index/file/POST/POST.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}index/file/POST/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.indexWebsite]
+==== indexWebsite
+
+`POST /index/url`
+
+Index Website
+
+===== Description
+
+This endpoint allows you to index a website by providing its URL. The service will only index the site the url points to. It will not follow links. 
+
+
+// markup not found, no include::{specDir}index/url/POST/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| IndexWebsiteRequest
+|  <<IndexWebsiteRequest>>
+| X
+| 
+| 
+
+|===
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Indexing successful
+|  <<>>
+
+
+| 202
+| Indexing accepted, processing in background since it takes too long
+|  <<>>
+
+
+| 400
+| Bad request
+|  <<>>
+
+
+| 409
+| Website already indexed
+|  <<>>
+
+
+| 500
+| Internal server error
+|  <<>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}index/url/POST/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}index/url/POST/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :index/url/POST/POST.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}index/url/POST/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.searchFiles]
+==== searchFiles
+
+`POST /search`
+
+Search for files
+
+===== Description
+
+This endpoint allows you to search for indexed files. You can specify the page number and size for pagination. The search query is required in the request body. 
+
+
+// markup not found, no include::{specDir}search/POST/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| SearchQuery
+|  <<SearchQuery>>
+| X
+| 
+| 
+
+|===
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| pageNumber
+| Page number 
+| -
+| 0
+| 
+
+| pageSize
+| Page size 
+| -
+| 20
+| 
+
+|===
+
+
+===== Return Type
+
+array[<<searchResult>>]
+
+
+===== Content Type
+
+* application/json
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Search successful
+| List[<<searchResult>>] 
+
+
+| 400
+| Bad request
+|  <<>>
+
+
+| 500
+| Internal server error
+|  <<>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}search/POST/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}search/POST/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :search/POST/POST.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}search/POST/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.sendMessage]
+==== sendMessage
+
+`POST /completions/chat`
+
+Send a message in a chat
+
+===== Description
+
+
+
+
+// markup not found, no include::{specDir}completions/chat/POST/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| ChatMessage
+|  <<ChatMessage>>
+| X
+| 
+| 
+
+|===
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| chatId
+| The unique identifier for the chat session 
+| X
+| null
+| 
+
+|===
+
+
+===== Return Type
+
+<<chat>>
+
+
+===== Content Type
+
+* application/json
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Message sent successfully
+|  <<chat>>
+
+
+| 400
+| Bad request
+|  <<>>
+
+
+| 404
+| Chat not found
+|  <<>>
+
+
+| 500
+| Internal server error
+|  <<>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}completions/chat/POST/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}completions/chat/POST/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :completions/chat/POST/POST.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}completions/chat/POST/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.submitFeedback]
+==== submitFeedback
+
+`POST /feedback`
+
+Submit feedback
+
+===== Description
+
+This endpoint allows you to submit feedback. The feedback can be an arbitrary string. 
+
+
+// markup not found, no include::{specDir}feedback/POST/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| Feedback
+|  <<Feedback>>
+| X
+| 
+| 
+
+|===
+
+
+
+
+
+===== Return Type
+
+
+<<UUID>>
+
+
+===== Content Type
+
+* application/json
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 201
+| Created
+|  <<UUID>>
+
+
+| 400
+| Bad request
+|  <<>>
+
+
+| 401
+| Unauthorized
+|  <<>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}feedback/POST/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}feedback/POST/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :feedback/POST/POST.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}feedback/POST/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.updateChat]
+==== updateChat
+
+`PATCH /completions/chat`
+
+Update a chat
+
+===== Description
+
+
+
+
+// markup not found, no include::{specDir}completions/chat/PATCH/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| Chat
+|  <<Chat>>
+| X
+| 
+| 
+
+|===
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| chatId
+| The unique identifier for the chat session 
+| X
+| null
+| 
+
+|===
+
+
+===== Return Type
+
+
+
+-
+
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Chat updated successfully
+|  <<>>
+
+
+| 400
+| Bad request
+|  <<>>
+
+
+| 404
+| Chat not found
+|  <<>>
+
+
+| 500
+| Internal server error
+|  <<>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}completions/chat/PATCH/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}completions/chat/PATCH/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :completions/chat/PATCH/PATCH.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}completions/chat/PATCH/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.updateIndexedWebsite]
+==== updateIndexedWebsite
+
+`POST /sources/websites/update`
+
+Update indexed website
+
+===== Description
+
+This endpoint allows you to update indexed website sources. It requires an array of websiteIds to update the corresponding sources. If the list is empty, all indexed websites will be updated. If the list contains specific websiteIds, only those will be updated. If the list contains a websiteId that does not exist, it will be ignored. 
+
+
+// markup not found, no include::{specDir}sources/websites/update/POST/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| UpdateIndexedWebsiteRequest
+|  <<UpdateIndexedWebsiteRequest>>
+| X
+| 
+| 
+
+|===
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Source updated successfully
+|  <<>>
+
+
+| 500
+| Internal server error
+|  <<>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}sources/websites/update/POST/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}sources/websites/update/POST/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :sources/websites/update/POST/POST.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}sources/websites/update/POST/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.uploadFile]
+==== uploadFile
+
+`POST /files`
+
+Upload file
+
+===== Description
+
+This endpoint you to upload a file for indexing. This endpoint will **not** index the file. It is only for uploading files that you want to index later. 
+
+
+// markup not found, no include::{specDir}files/POST/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+
+====== Form Parameters
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| file
+|  <<file>>
+| X
+| null
+| 
+
+|===
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| temporary
+| If set to true, the file will be stored temporarily and deleted after some time. If set to false, the file will be stored permanently. Temporary files cannot be indexed. They should be used in chats.  
+| -
+| false
+| 
+
+|===
+
+
+===== Return Type
+
+<<uploadFile_200_response>>
+
+
+===== Content Type
+
+* application/json
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| OK
+|  <<uploadFile_200_response>>
+
+
+| 400
+| Bad request
+|  <<>>
+
+
+| 500
+| Internal server error
+|  <<>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}files/POST/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}files/POST/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :files/POST/POST.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}files/POST/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[#models]
+== Models
+
+
+[#Chat]
+=== _Chat_ 
+
+The chat schema represents a chat session, which includes a unique identifier,
+a list of embeddings, a system prompt, and a list of messages.
+Each message can contain files and website URLs for context.
+
+
+
+[.fields-Chat]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| chatId
+| 
+| 
+|   UUID  
+| The unique identifier for the chat session
+| uuid    
+
+| embeddings
+| 
+| 
+|   List   of <<UUID>>
+| A list of embedding IDs that are associated with the chat. These embeddings can be used to provide context or additional information in the chat. 
+| uuid    
+
+| systemPrompt
+| 
+| 
+|   String  
+| The system prompt for the chat
+|     
+
+| messages
+| 
+| 
+|   List   of <<chatMessage>>
+| 
+|     
+
+|===
+
+
+
+[#ChatFile]
+=== _ChatFile_ 
+
+
+
+
+[.fields-ChatFile]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| fileId
+| X
+| 
+|   UUID  
+| The unique identifier for the file
+| uuid    
+
+| fileName
+| 
+| 
+|   String  
+| The name of the file
+|     
+
+|===
+
+
+
+[#ChatMessage]
+=== _ChatMessage_ 
+
+The chat message schema represents a message in a chat session.
+Each message has a role (user or assistant), content, and can include associated files and website URLs for context.
+Files have to be uploaded via the &#x60;/files&#x60; endpoint before they can be used in a chat message.
+
+
+
+[.fields-ChatMessage]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| role
+| 
+| 
+|  <<String>>  
+| The role of the message sender
+|  _Enum:_ user, assistant,  
+
+| content
+| 
+| 
+|   String  
+| The content of the message
+|     
+
+| files
+| 
+| 
+|   List   of <<chatFile>>
+| A list of files that are associated with the message. These files can be used to provide context or additional information in the chat. 
+|     
+
+| websiteURLs
+| 
+| 
+|   List   of <<URI>>
+| A list of website URLs that are associated with the message. These URLs can be used to provide context or additional information in the chat. 
+| uri    
+
+|===
+
+
+
+[#Feedback]
+=== _Feedback_ 
+
+This represents a feedback message.
+
+
+[.fields-Feedback]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| content
+| X
+| 
+|   String  
+| The content of the feedback message. This can be an arbitrary string. 
+|     
+
+|===
+
+
+
+[#FileSource]
+=== _FileSource_ 
+
+
+
+
+[.fields-FileSource]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| fileId
+| X
+| 
+|   UUID  
+| The unique identifier for the indexed file
+| uuid    
+
+| fileName
+| X
+| 
+|   String  
+| The name of the indexed file
+|     
+
+| title
+| X
+| 
+|   String  
+| The title of the indexed file, used in search results
+|     
+
+| uploadDate
+| 
+| 
+|   Date  
+| The date and time when the file was uploaded
+| date-time    
+
+| embedded
+| 
+| 
+|   Boolean  
+| Indicates whether the file is embedded in the index. If true, the file content is indexed and searchable.
+|     
+
+|===
+
+
+
+[#GetAllIndexedSources200Response]
+=== _GetAllIndexedSources200Response_ 
+
+
+
+
+[.fields-GetAllIndexedSources200Response]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| files
+| 
+| 
+|   List   of <<fileSource>>
+| 
+|     
+
+| websites
+| 
+| 
+|   List   of <<websiteSource>>
+| 
+|     
+
+|===
+
+
+
+[#GetMetadataKeys200Response]
+=== _GetMetadataKeys200Response_ 
+
+
+
+
+[.fields-GetMetadataKeys200Response]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| keys
+| 
+| 
+|   List   of <<string>>
+| 
+|     
+
+|===
+
+
+
+[#IndexFilesRequestInner]
+=== _IndexFilesRequestInner_ 
+
+
+
+
+[.fields-IndexFilesRequestInner]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| fileId
+| X
+| 
+|   UUID  
+| The id returned by the upload endpoint
+| uuid    
+
+| title
+| 
+| 
+|   String  
+| The title of the file used in search results. Defaults to the file name without the file ending. 
+|     
+
+| date
+| 
+| 
+|   date  
+| A date associated with the file. This can be used to filter search results by date. 
+| date    
+
+|===
+
+
+
+[#IndexWebsiteRequest]
+=== _IndexWebsiteRequest_ 
+
+
+
+
+[.fields-IndexWebsiteRequest]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| url
+| X
+| 
+|   String  
+| The URL of the website to index
+|     
+
+| date
+| 
+| 
+|   date  
+| A date associated with the file. This can be used to filter search results by date. 
+| date    
+
+|===
+
+
+
+[#SearchQuery]
+=== _SearchQuery_ 
+
+
+
+
+[.fields-SearchQuery]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| query
+| X
+| 
+|   String  
+| The search query to find indexed files
+|     
+
+| filterExpression
+| 
+| 
+|   String  
+| An optional filter expression to filter the search results. This can be used to filter results based on specific criteria. The syntax of the filter expression can be found in the server documentation. 
+|     
+
+|===
+
+
+
+[#SearchResult]
+=== _SearchResult_ 
+
+Additional properties:
+ - none yet
+
+
+
+[.fields-SearchResult]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| documentId
+| X
+| 
+|   UUID  
+| This identifies this text. 
+| uuid    
+
+| fileName
+| 
+| 
+|   String  
+| The name of the file that was indexed. If this is present, it means the result is from a file. 
+|     
+
+| fileId
+| 
+| 
+|   UUID  
+| The identifier for the file that was indexed. If this is present, it means the result is from a file. 
+| uuid    
+
+| url
+| 
+| 
+|   String  
+| The URL of the website that was indexed. If this is present, it means the result is from a website. 
+|     
+
+| title
+| X
+| 
+|   String  
+| The title of the source. 
+|     
+
+| uploadDate
+| 
+| 
+|   Date  
+| The date and time when the file was uploaded or website was indexed. 
+| date-time    
+
+| text
+| X
+| 
+|   String  
+| The text content of the indexed file or website. This is the embedded text that matched the search query. 
+|     
+
+| score
+| X
+| 
+|   Double  
+| The score of the search result. This is a measure of how well the result matches the search query. Higher scores indicate better matches. The value is between 0 and 1, where 1 is a perfect match. 
+| double    
+
+|===
+
+
+
+[#SystemInfo]
+=== _SystemInfo_ 
+
+
+
+
+[.fields-SystemInfo]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| serverVersion
+| X
+| 
+|   String  
+| The version of the server
+|     
+
+| apiVersion
+| X
+| 
+|   String  
+| The version of the API implemented by the server
+|     
+
+| embeddingContextWindow
+| X
+| 
+|   Integer  
+| The context window size used for embeddings
+|     
+
+| chatContextWindow
+| X
+| 
+|   Integer  
+| The context window size used for chat interactions
+|     
+
+| maxEmbeddingsInChat
+| X
+| 
+|   Integer  
+| The maximum number of embeddings that can be used in a chat
+|     
+
+| supportedFileEndings
+| X
+| 
+|   List   of <<string>>
+| The file endings that are supported for indexing.
+|     
+
+| maxFileSize
+| X
+| 
+|   Integer  
+| The maximum file size that can be uploaded for indexing, in megabytes.
+|     
+
+| metadataKeys
+| 
+| 
+|   List   of <<string>>
+| The metadata keys that are supported for indexing. These keys can be used to filter search results. Custom properties are not in this list but can be reached via the additional properties key. 
+|     
+
+|===
+
+
+
+[#UpdateIndexedWebsiteRequest]
+=== _UpdateIndexedWebsiteRequest_ 
+
+
+
+
+[.fields-UpdateIndexedWebsiteRequest]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| ids
+| 
+| 
+|   List   of <<UUID>>
+| An array of identifiers for the sources to update. This must only include and websiteIds. 
+| uuid    
+
+|===
+
+
+
+[#UploadFile200Response]
+=== _UploadFile200Response_ 
+
+
+
+
+[.fields-UploadFile200Response]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| id
+| X
+| 
+|   UUID  
+| 
+| uuid    
+
+|===
+
+
+
+[#WebsiteSource]
+=== _WebsiteSource_ 
+
+
+
+
+[.fields-WebsiteSource]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| websiteId
+| X
+| 
+|   UUID  
+| The unique identifier for the indexed website
+| uuid    
+
+| url
+| X
+| 
+|   String  
+| The URL of the indexed website
+|     
+
+| title
+| X
+| 
+|   String  
+| The name of the indexed website
+|     
+
+| uploadDate
+| 
+| 
+|   Date  
+| The date and time when the website was indexed
+| date-time    
+
+| embedded
+| 
+| 
+|   Boolean  
+| Indicates whether the website content is embedded in the index. If true, the website content is indexed and searchable.
+|     
+
+|===
+
+
+

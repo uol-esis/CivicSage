@@ -1,0 +1,83 @@
+file:
+  post:
+    summary: Index new files
+    description: |
+      This endpoint allows you to index new files by uploading them.
+    operationId: IndexFiles
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              required:
+                - fileId
+              properties:
+                fileId:
+                  type: string
+                  format: uuid
+                  description: The id returned by the upload endpoint
+                title:
+                  type: string
+                  description: |
+                    The title of the file used in search results.
+                    Defaults to the file name without the file ending.
+                date:
+                  type: string
+                  format: date
+                  description: |
+                    A date associated with the file.
+                    This can be used to filter search results by date.
+              additionalProperties: true
+    responses:
+      '200':
+        description: Indexing successful
+      '202':
+        description: Indexing accepted, processing in background since it takes too long
+      '400':
+        description: Bad request
+      '409':
+        description: File already indexed
+      '500':
+        description: Internal server error
+
+url:
+  post:
+    summary: Index Website
+    description: |
+      This endpoint allows you to index a website by providing its URL.
+      The service will only index the site the url points to.
+      It will not follow links.
+    operationId: IndexWebsite
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - url
+            properties:
+              url:
+                type: string
+                description: The URL of the website to index
+              date:
+                type: string
+                format: date
+                description: |
+                  A date associated with the file.
+                  This can be used to filter search results by date.
+            additionalProperties: true
+    responses:
+      '200':
+        description: Indexing successful
+      '202':
+        description: Indexing accepted, processing in background since it takes too long
+      '400':
+        description: Bad request
+      '409':
+        description: Website already indexed
+      '500':
+        description: Internal server error

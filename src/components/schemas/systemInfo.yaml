@@ -1,0 +1,41 @@
+type: object
+required:
+  - serverVersion
+  - apiVersion
+  - embeddingContextWindow
+  - chatContextWindow
+  - maxEmbeddingsInChat
+  - supportedFileEndings
+  - maxFileSize
+properties:
+  serverVersion:
+    type: string
+    description: The version of the server
+  apiVersion:
+    type: string
+    description: The version of the API implemented by the server
+  embeddingContextWindow:
+    type: integer
+    description: The context window size used for embeddings
+  chatContextWindow:
+    type: integer
+    description: The context window size used for chat interactions
+  maxEmbeddingsInChat:
+    type: integer
+    description: The maximum number of embeddings that can be used in a chat
+  supportedFileEndings:
+    type: array
+    items:
+      type: string
+    description: The file endings that are supported for indexing.
+  maxFileSize:
+    type: integer
+    description: The maximum file size that can be uploaded for indexing, in megabytes.
+  metadataKeys:
+    type: array
+    items:
+      type: string
+    description: |
+      The metadata keys that are supported for indexing.
+      These keys can be used to filter search results.
+      Custom properties are not in this list but can be reached via the additional properties key.

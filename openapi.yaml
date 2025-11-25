@@ -1,0 +1,837 @@
+openapi: 3.0.3
+info:
+  description: |
+    CivicSage is a service that allows you to index files and websites.
+  title: CivicSage
+  version: 0.7.0
+servers:
+- description: Local development server
+  url: localhost:8080/api/v1
+paths:
+  /index/file:
+    post:
+      description: |
+        This endpoint allows you to index new files by uploading them.
+      operationId: IndexFiles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              items:
+                $ref: '#/components/schemas/IndexFiles_request_inner'
+              type: array
+        required: true
+      responses:
+        "200":
+          description: Indexing successful
+        "202":
+          description: "Indexing accepted, processing in background since it takes\
+            \ too long"
+        "400":
+          description: Bad request
+        "409":
+          description: File already indexed
+        "500":
+          description: Internal server error
+      summary: Index new files
+  /index/url:
+    post:
+      description: |
+        This endpoint allows you to index a website by providing its URL.
+        The service will only index the site the url points to.
+        It will not follow links.
+      operationId: IndexWebsite
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IndexWebsite_request'
+        required: true
+      responses:
+        "200":
+          description: Indexing successful
+        "202":
+          description: "Indexing accepted, processing in background since it takes\
+            \ too long"
+        "400":
+          description: Bad request
+        "409":
+          description: Website already indexed
+        "500":
+          description: Internal server error
+      summary: Index Website
+  /search:
+    post:
+      description: |
+        This endpoint allows you to search for indexed files.
+        You can specify the page number and size for pagination.
+        The search query is required in the request body.
+      operationId: SearchFiles
+      parameters:
+      - description: Page number
+        in: query
+        name: pageNumber
+        required: false
+        schema:
+          default: 0
+          format: int32
+          type: integer
+      - description: Page size
+        in: query
+        name: pageSize
+        required: false
+        schema:
+          default: 20
+          format: int32
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/searchQuery'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/searchResult'
+                type: array
+          description: Search successful
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      summary: Search for files
+  /files:
+    get:
+      description: |
+        This endpoint provides the specified file as a download.
+      operationId: downloadFile
+      parameters:
+      - description: |
+          The identifier for the file to download.
+        in: query
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        "200":
+          content:
+            application/octet-stream:
+              schema:
+                format: binary
+                type: string
+          description: OK
+          headers:
+            Content-Disposition:
+              description: |
+                The Content-Disposition header is used to specify the file name
+                when the file is downloaded.
+              schema:
+                example: attachment; filename="downloaded_file.txt"
+                type: string
+        "404":
+          description: File not found
+      summary: Download file
+    post:
+      description: |
+        This endpoint you to upload a file for indexing.
+        This endpoint will **not** index the file.
+        It is only for uploading files that you want to index later.
+      operationId: uploadFile
+      parameters:
+      - description: |
+          If set to true, the file will be stored temporarily and deleted after some time.
+          If set to false, the file will be stored permanently.
+          Temporary files cannot be indexed.
+          They should be used in chats.
+        in: query
+        name: temporary
+        schema:
+          default: false
+          type: boolean
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/uploadFile_request'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/uploadFile_200_response'
+          description: OK
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      summary: Upload file
+  /feedback:
+    post:
+      description: |
+        This endpoint allows you to submit feedback.
+        The feedback can be an arbitrary string.
+      operationId: submitFeedback
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/feedback'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                format: uuid
+                type: string
+          description: Created
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+      summary: Submit feedback
+  /system/info:
+    get:
+      description: |
+        This endpoint provides information about the system.
+      operationId: getSystemInfo
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/systemInfo'
+          description: System information retrieved successfully
+      summary: Get system information
+  /system/metadata-keys:
+    get:
+      description: |
+        This endpoint provides the metadata keys that are supported for searching.
+        This list includes custom keys provided via additional properties.
+        All keys are complete. So there is no need to add `additionalProperties.` for custom keys.
+      operationId: getMetadataKeys
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getMetadataKeys_200_response'
+          description: Metadata keys retrieved successfully
+      summary: Get metadata keys
+  /completions/chat:
+    delete:
+      operationId: deleteChat
+      parameters:
+      - description: The unique identifier for the chat session
+        in: query
+        name: chatId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        "204":
+          description: Chat deleted successfully
+        "400":
+          description: Bad request
+        "404":
+          description: Chat not found
+        "500":
+          description: Internal server error
+      summary: Delete a chat
+    get:
+      operationId: getChat
+      parameters:
+      - description: The unique identifier for the chat session
+        in: query
+        name: chatId
+        required: false
+        schema:
+          format: uuid
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/chat'
+          description: Chat retrieved successfully
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/chat'
+          description: Chat created successfully
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      summary: Create or retrieve a chat
+    patch:
+      operationId: updateChat
+      parameters:
+      - description: The unique identifier for the chat session
+        in: query
+        name: chatId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/chat'
+        required: true
+      responses:
+        "200":
+          description: Chat updated successfully
+        "400":
+          description: Bad request
+        "404":
+          description: Chat not found
+        "500":
+          description: Internal server error
+      summary: Update a chat
+    post:
+      operationId: sendMessage
+      parameters:
+      - description: The unique identifier for the chat session
+        in: query
+        name: chatId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/chatMessage'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/chat'
+          description: Message sent successfully
+        "400":
+          description: Bad request
+        "404":
+          description: Chat not found
+        "500":
+          description: Internal server error
+      summary: Send a message in a chat
+  /sources:
+    delete:
+      description: |
+        This endpoint allows you to delete an indexed source by its ID.
+        The ID can be either a fileId or a websiteId.
+        If deleting a file, the file will be removed from storage.
+      operationId: deleteIndexedSource
+      parameters:
+      - description: |
+          The identifier for the source to delete.
+          This can be either a fileId or a websiteId.
+        in: query
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        "204":
+          description: Source deleted successfully
+        "404":
+          description: Source not found
+        "500":
+          description: Internal server error
+      summary: Delete indexed source
+    get:
+      description: |
+        This endpoint retrieves a list of all indexed sources, including files and websites.
+      operationId: getAllIndexedSources
+      parameters:
+      - description: |
+          An optional filter expression to filter the indexed sources.
+          This can be used to filter results based on specific criteria.
+          The syntax of the filter expression can be found in the server documentation.
+        in: query
+        name: filterExpression
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getAllIndexedSources_200_response'
+          description: Indexed sources retrieved successfully
+        "500":
+          description: Internal server error
+      summary: Get all indexed sources
+  /sources/websites/update:
+    post:
+      description: |
+        This endpoint allows you to update indexed website sources.
+        It requires an array of websiteIds to update the corresponding sources.
+        If the list is empty, all indexed websites will be updated.
+        If the list contains specific websiteIds, only those will be updated.
+        If the list contains a websiteId that does not exist, it will be ignored.
+      operationId: updateIndexedWebsite
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateIndexedWebsite_request'
+        required: true
+      responses:
+        "200":
+          description: Source updated successfully
+        "500":
+          description: Internal server error
+      summary: Update indexed website
+components:
+  schemas:
+    searchQuery:
+      properties:
+        query:
+          description: The search query to find indexed files
+          type: string
+        filterExpression:
+          description: |
+            An optional filter expression to filter the search results.
+            This can be used to filter results based on specific criteria.
+            The syntax of the filter expression can be found in the server documentation.
+          type: string
+      required:
+      - query
+      type: object
+    searchResult:
+      additionalProperties: true
+      description: |
+        Additional properties:
+         - none yet
+      example:
+        score: 0.8008281904610115
+        fileName: fileName
+        uploadDate: 2000-01-23T04:56:07.000+00:00
+        documentId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        text: text
+        title: title
+        url: url
+        fileId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        documentId:
+          description: |
+            This identifies this text.
+          format: uuid
+          type: string
+        fileName:
+          description: |
+            The name of the file that was indexed.
+            If this is present, it means the result is from a file.
+          type: string
+        fileId:
+          description: |
+            The identifier for the file that was indexed.
+            If this is present, it means the result is from a file.
+          format: uuid
+          type: string
+        url:
+          description: |
+            The URL of the website that was indexed.
+            If this is present, it means the result is from a website.
+          type: string
+        title:
+          description: |
+            The title of the source.
+          type: string
+        uploadDate:
+          description: |
+            The date and time when the file was uploaded or website was indexed.
+          format: date-time
+          type: string
+        text:
+          description: |
+            The text content of the indexed file or website.
+            This is the embedded text that matched the search query.
+          type: string
+        score:
+          description: |
+            The score of the search result.
+            This is a measure of how well the result matches the search query.
+            Higher scores indicate better matches.
+            The value is between 0 and 1, where 1 is a perfect match.
+          format: double
+          type: number
+      required:
+      - documentId
+      - score
+      - text
+      - title
+      type: object
+    feedback:
+      description: This represents a feedback message.
+      properties:
+        content:
+          description: |
+            The content of the feedback message.
+            This can be an arbitrary string.
+          minLength: 1
+          type: string
+      required:
+      - content
+      type: object
+    systemInfo:
+      example:
+        supportedFileEndings:
+        - supportedFileEndings
+        - supportedFileEndings
+        serverVersion: serverVersion
+        maxEmbeddingsInChat: 1
+        metadataKeys:
+        - metadataKeys
+        - metadataKeys
+        apiVersion: apiVersion
+        embeddingContextWindow: 0
+        chatContextWindow: 6
+        maxFileSize: 5
+      properties:
+        serverVersion:
+          description: The version of the server
+          type: string
+        apiVersion:
+          description: The version of the API implemented by the server
+          type: string
+        embeddingContextWindow:
+          description: The context window size used for embeddings
+          type: integer
+        chatContextWindow:
+          description: The context window size used for chat interactions
+          type: integer
+        maxEmbeddingsInChat:
+          description: The maximum number of embeddings that can be used in a chat
+          type: integer
+        supportedFileEndings:
+          description: The file endings that are supported for indexing.
+          items:
+            type: string
+          type: array
+        maxFileSize:
+          description: "The maximum file size that can be uploaded for indexing, in\
+            \ megabytes."
+          type: integer
+        metadataKeys:
+          description: |
+            The metadata keys that are supported for indexing.
+            These keys can be used to filter search results.
+            Custom properties are not in this list but can be reached via the additional properties key.
+          items:
+            type: string
+          type: array
+      required:
+      - apiVersion
+      - chatContextWindow
+      - embeddingContextWindow
+      - maxEmbeddingsInChat
+      - maxFileSize
+      - serverVersion
+      - supportedFileEndings
+      type: object
+    fileSource:
+      additionalProperties: true
+      example:
+        fileName: fileName
+        uploadDate: 2000-01-23T04:56:07.000+00:00
+        title: title
+        embedded: true
+        fileId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        fileId:
+          description: The unique identifier for the indexed file
+          format: uuid
+          type: string
+        fileName:
+          description: The name of the indexed file
+          type: string
+        title:
+          description: "The title of the indexed file, used in search results"
+          type: string
+        uploadDate:
+          description: The date and time when the file was uploaded
+          format: date-time
+          type: string
+        embedded:
+          description: "Indicates whether the file is embedded in the index. If true,\
+            \ the file content is indexed and searchable."
+          type: boolean
+      required:
+      - fileId
+      - fileName
+      - title
+      type: object
+    websiteSource:
+      additionalProperties: true
+      example:
+        websiteId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        uploadDate: 2000-01-23T04:56:07.000+00:00
+        title: title
+        embedded: true
+        url: url
+      properties:
+        websiteId:
+          description: The unique identifier for the indexed website
+          format: uuid
+          type: string
+        url:
+          description: The URL of the indexed website
+          type: string
+        title:
+          description: The name of the indexed website
+          type: string
+        uploadDate:
+          description: The date and time when the website was indexed
+          format: date-time
+          type: string
+        embedded:
+          description: "Indicates whether the website content is embedded in the index.\
+            \ If true, the website content is indexed and searchable."
+          type: boolean
+      required:
+      - title
+      - url
+      - websiteId
+      type: object
+    chat:
+      description: |
+        The chat schema represents a chat session, which includes a unique identifier,
+        a list of embeddings, a system prompt, and a list of messages.
+        Each message can contain files and website URLs for context.
+      example:
+        embeddings:
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        systemPrompt: systemPrompt
+        chatId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        messages:
+        - role: user
+          websiteURLs:
+          - https://openapi-generator.tech
+          - https://openapi-generator.tech
+          files:
+          - fileName: fileName
+            fileId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          - fileName: fileName
+            fileId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          content: content
+        - role: user
+          websiteURLs:
+          - https://openapi-generator.tech
+          - https://openapi-generator.tech
+          files:
+          - fileName: fileName
+            fileId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          - fileName: fileName
+            fileId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          content: content
+      properties:
+        chatId:
+          description: The unique identifier for the chat session
+          format: uuid
+          type: string
+        embeddings:
+          description: |
+            A list of embedding IDs that are associated with the chat.
+            These embeddings can be used to provide context or additional information in the chat.
+          items:
+            format: uuid
+            type: string
+          type: array
+        systemPrompt:
+          description: The system prompt for the chat
+          type: string
+        messages:
+          items:
+            $ref: '#/components/schemas/chatMessage'
+          type: array
+      type: object
+    chatMessage:
+      description: |
+        The chat message schema represents a message in a chat session.
+        Each message has a role (user or assistant), content, and can include associated files and website URLs for context.
+        Files have to be uploaded via the `/files` endpoint before they can be used in a chat message.
+      example:
+        role: user
+        websiteURLs:
+        - https://openapi-generator.tech
+        - https://openapi-generator.tech
+        files:
+        - fileName: fileName
+          fileId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - fileName: fileName
+          fileId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        content: content
+      properties:
+        role:
+          description: The role of the message sender
+          enum:
+          - user
+          - assistant
+          type: string
+        content:
+          description: The content of the message
+          type: string
+        files:
+          description: |
+            A list of files that are associated with the message.
+            These files can be used to provide context or additional information in the chat.
+          items:
+            $ref: '#/components/schemas/chatFile'
+          type: array
+        websiteURLs:
+          description: |
+            A list of website URLs that are associated with the message.
+            These URLs can be used to provide context or additional information in the chat.
+          items:
+            format: uri
+            type: string
+          type: array
+      type: object
+    chatFile:
+      example:
+        fileName: fileName
+        fileId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        fileId:
+          description: The unique identifier for the file
+          format: uuid
+          type: string
+        fileName:
+          description: The name of the file
+          type: string
+      required:
+      - fileId
+      type: object
+    IndexFiles_request_inner:
+      additionalProperties: true
+      example:
+        date: 2000-01-23
+        title: title
+        fileId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        fileId:
+          description: The id returned by the upload endpoint
+          format: uuid
+          type: string
+        title:
+          description: |
+            The title of the file used in search results.
+            Defaults to the file name without the file ending.
+          type: string
+        date:
+          description: |
+            A date associated with the file.
+            This can be used to filter search results by date.
+          format: date
+          type: string
+      required:
+      - fileId
+      type: object
+    IndexWebsite_request:
+      additionalProperties: true
+      properties:
+        url:
+          description: The URL of the website to index
+          type: string
+        date:
+          description: |
+            A date associated with the file.
+            This can be used to filter search results by date.
+          format: date
+          type: string
+      required:
+      - url
+      type: object
+    uploadFile_request:
+      properties:
+        file:
+          format: binary
+          type: string
+      required:
+      - file
+      type: object
+    uploadFile_200_response:
+      example:
+        id: 123e4567-e89b-12d3-a456-426614174000
+      properties:
+        id:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          format: uuid
+          type: string
+      required:
+      - id
+      type: object
+    getMetadataKeys_200_response:
+      example:
+        keys:
+        - keys
+        - keys
+      properties:
+        keys:
+          items:
+            type: string
+          type: array
+      type: object
+    getAllIndexedSources_200_response:
+      example:
+        files:
+        - fileName: fileName
+          uploadDate: 2000-01-23T04:56:07.000+00:00
+          title: title
+          embedded: true
+          fileId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - fileName: fileName
+          uploadDate: 2000-01-23T04:56:07.000+00:00
+          title: title
+          embedded: true
+          fileId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        websites:
+        - websiteId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          uploadDate: 2000-01-23T04:56:07.000+00:00
+          title: title
+          embedded: true
+          url: url
+        - websiteId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          uploadDate: 2000-01-23T04:56:07.000+00:00
+          title: title
+          embedded: true
+          url: url
+      properties:
+        files:
+          items:
+            $ref: '#/components/schemas/fileSource'
+          type: array
+        websites:
+          items:
+            $ref: '#/components/schemas/websiteSource'
+          type: array
+      type: object
+    updateIndexedWebsite_request:
+      properties:
+        ids:
+          description: |
+            An array of identifiers for the sources to update.
+            This must only include and websiteIds.
+          items:
+            format: uuid
+            type: string
+          type: array
+      type: object

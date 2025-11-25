@@ -1,0 +1,56 @@
+get:
+  summary: Get all indexed sources
+  description: |
+    This endpoint retrieves a list of all indexed sources, including files and websites.
+  operationId: getAllIndexedSources
+  parameters:
+    - in: query
+      name: filterExpression
+      description: |
+        An optional filter expression to filter the indexed sources.
+        This can be used to filter results based on specific criteria.
+        The syntax of the filter expression can be found in the server documentation.
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Indexed sources retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              files:
+                type: array
+                items:
+                  $ref: '../components/schemas/fileSource.yaml'
+              websites:
+                type: array
+                items:
+                  $ref: '../components/schemas/websiteSource.yaml'
+    '500':
+      description: Internal server error
+delete:
+  summary: Delete indexed source
+  description: |
+    This endpoint allows you to delete an indexed source by its ID.
+    The ID can be either a fileId or a websiteId.
+    If deleting a file, the file will be removed from storage.
+  operationId: deleteIndexedSource
+  parameters:
+    - in: query
+      name: id
+      description: |
+        The identifier for the source to delete.
+        This can be either a fileId or a websiteId.
+      schema:
+        type: string
+        format: uuid
+      required: true
+  responses:
+    '204':
+      description: Source deleted successfully
+    '404':
+      description: Source not found
+    '500':
+      description: Internal server error

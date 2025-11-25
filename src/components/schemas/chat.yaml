@@ -1,0 +1,25 @@
+type: object
+description: |
+  The chat schema represents a chat session, which includes a unique identifier,
+  a list of embeddings, a system prompt, and a list of messages.
+  Each message can contain files and website URLs for context.
+properties:
+  chatId:
+    type: string
+    format: uuid
+    description: The unique identifier for the chat session
+  embeddings:
+    type: array
+    items:
+      type: string
+      format: uuid
+    description: |
+      A list of embedding IDs that are associated with the chat.
+      These embeddings can be used to provide context or additional information in the chat.
+  systemPrompt:
+    type: string
+    description: The system prompt for the chat
+  messages:
+    type: array
+    items:
+      $ref: './chatMessage.yaml'

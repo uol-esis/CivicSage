@@ -1,0 +1,79 @@
+get:
+  summary: Download file
+  description: |
+    This endpoint provides the specified file as a download.
+  operationId: downloadFile
+  parameters:
+    - in: query
+      name: id
+      description: |
+        The identifier for the file to download.
+      schema:
+        type: string
+        format: uuid
+      required: true
+  responses:
+    '200':
+      description: OK
+      content:
+        application/octet-stream:
+          schema:
+            type: string
+            format: binary
+      headers:
+        Content-Disposition:
+          description: |
+            The Content-Disposition header is used to specify the file name
+            when the file is downloaded.
+          schema:
+            type: string
+            example: attachment; filename="downloaded_file.txt"
+    '404':
+      description: File not found
+post:
+  summary: Upload file
+  description: |
+    This endpoint you to upload a file for indexing.
+    This endpoint will **not** index the file.
+    It is only for uploading files that you want to index later.
+  operationId: uploadFile
+  parameters:
+    - name: temporary
+      in: query
+      description: |
+        If set to true, the file will be stored temporarily and deleted after some time.
+        If set to false, the file will be stored permanently.
+        Temporary files cannot be indexed.
+        They should be used in chats.
+      schema:
+        type: boolean
+        default: false
+  requestBody:
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          required:
+            - file
+          properties:
+            file:
+              type: string
+              format: binary
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - id
+            properties:
+              id:
+                type: string
+                format: uuid
+                example: "123e4567-e89b-12d3-a456-426614174000"
+    '400':
+      description: Bad request
+    '500':
+      description: Internal server error

@@ -1,0 +1,29 @@
+post:
+  summary: Update indexed website
+  description: |
+    This endpoint allows you to update indexed website sources.
+    It requires an array of websiteIds to update the corresponding sources.
+    If the list is empty, all indexed websites will be updated.
+    If the list contains specific websiteIds, only those will be updated.
+    If the list contains a websiteId that does not exist, it will be ignored.
+  operationId: updateIndexedWebsite
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            ids:
+              type: array
+              items:
+                type: string
+                format: uuid
+              description: |
+                An array of identifiers for the sources to update.
+                This must only include and websiteIds.
+  responses:
+    '200':
+      description: Source updated successfully
+    '500':
+      description: Internal server error

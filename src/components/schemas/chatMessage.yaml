@@ -1,0 +1,30 @@
+type: object
+description: |
+  The chat message schema represents a message in a chat session.
+  Each message has a role (user or assistant), content, and can include associated files and website URLs for context.
+  Files have to be uploaded via the `/files` endpoint before they can be used in a chat message.
+properties:
+  role:
+    type: string
+    enum:
+      - user
+      - assistant
+    description: The role of the message sender
+  content:
+    type: string
+    description: The content of the message
+  files:
+    type: array
+    items:
+      $ref: './chatFile.yaml'
+    description: |
+      A list of files that are associated with the message.
+      These files can be used to provide context or additional information in the chat.
+  websiteURLs:
+    type: array
+    items:
+      type: string
+      format: uri
+    description: |
+      A list of website URLs that are associated with the message.
+      These URLs can be used to provide context or additional information in the chat.
