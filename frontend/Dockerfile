@@ -3,6 +3,10 @@ FROM node:lts-alpine AS builder
 
 WORKDIR /app
 
+# prepare js-client for build
+COPY js-client ./js-client
+RUN cd js-client && npm install && npm pack
+
 COPY package*.json ./
 RUN apk add --no-cache git
 
