@@ -12,19 +12,15 @@ services:
     build:
       context: git@github.com:uol-esis/CivicSage.git#33-add-independent-install-script:backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/example
+      SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/example
       SPRING_DATASOURCE_USERNAME: example
       SPRING_DATASOURCE_PASSWORD: example
-      SECURITY_ALLOWED-ORIGINS: localhost:8080
-      LOGGING_LEVEL_DE_UOL_PGDOENER_CIVICSAGE: DEBUG
-      CIVICSAGE_EMBEDDING_MODEL_CONTEXTLENGTH: 256
       SPRING_AI_OPENAI_BASEURL: http://host.docker.internal:12434/engines
-      S3_URL: http://garage:3900
-      S3_BUCKET_NAME: civicsage-bucket
-      S3_REGION: garage
-    env_file:
-      - path: civicsage.env
-        required: false
+      CIVICSAGE_SECURITY_ALLOWED-ORIGINS: localhost
+      CIVICSAGE_EMBEDDING_MODEL_CONTEXTLENGTH: 256
+      CIVICSAGE_S3_URL: http://garage:3900
+      CIVICSAGE_S3_BUCKET_NAME: civicsage-bucket
+      CIVICSAGE_S3_REGION: garage
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
