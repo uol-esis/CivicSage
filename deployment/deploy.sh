@@ -6,7 +6,8 @@ curl -o data/createGarageToml.sh https://raw.githubusercontent.com/uol-esis/civi
 chmod +x data/createGarageToml.sh
 data/createGarageToml.sh
 
-
+curl -o data/configure.sh https://raw.githubusercontent.com/uol-esis/civicsage/33-add-independent-install-script/deployment/data/configure.sh
+chmod +x data/configure.sh
 
 curl -o docker-compose.yaml https://raw.githubusercontent.com/uol-esis/civicsage/33-add-independent-install-script/deployment/docker-compose.yaml
 
@@ -14,3 +15,7 @@ curl -o docker-compose.yaml https://raw.githubusercontent.com/uol-esis/civicsage
 touch .env
 echo $'CIVICSAGE_S3_SECRETKEY=<replace me>\nCIVICSAGE_S3_ACCESSKEY=<replace me>' >> .env
  
+docker compose up -d garage garage_config db frontend && docker compose logs -f garage_config
+
+
+
