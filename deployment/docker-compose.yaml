@@ -51,7 +51,7 @@ services:
     image: dxflrs/garage:v2.0.0
     container_name: garaged
     volumes:
-      - ./data/garage.toml:/etc/garage.toml
+      - ./garage.toml:/etc/garage.toml
       # - ./objectstorage/meta:/var/lib/garage/meta
       # - ./objectstorage/data:/var/lib/garage/data
 
