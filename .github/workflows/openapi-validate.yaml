@@ -3,7 +3,7 @@ name: Validate OpenAPI Document
 on:
   push:
     paths:
-      - openapi/**
+      - ../../backend/openapi/**
       - .github/workflows/openapi-validate.yaml
   pull_request:
 

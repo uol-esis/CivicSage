@@ -1,0 +1,78 @@
+name: CivicSage Demo
+services:
+  frontend:
+    ports:
+      - "80:80"
+    build:
+      context: git@github.com:uol-esis/CivicSage.git#33-add-independent-install-script:frontend
+    environment:
+      API_HOST: http://backend:8080
+
+  backend:
+    build:
+      context: git@github.com:uol-esis/CivicSage.git#33-add-independent-install-script:backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/example
+      SPRING_DATASOURCE_USERNAME: example
+      SPRING_DATASOURCE_PASSWORD: example
+      SECURITY_ALLOWED-ORIGINS: localhost:8080
+      LOGGING_LEVEL_DE_UOL_PGDOENER_CIVICSAGE: DEBUG
+      CIVICSAGE_EMBEDDING_MODEL_CONTEXTLENGTH: 256
+      SPRING_AI_OPENAI_BASEURL: http://host.docker.internal:12434/engines
+      S3_URL: http://garage:3900
+      S3_BUCKET_NAME: civicsage-bucket
+      S3_REGION: garage
+    env_file:
+      - path: civicsage.env
+        required: false
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      db:
+        condition: service_healthy
+      garage:
+        condition: service_started
+
+  db:
+    image: mariadb:11.8.2-ubi9
+    environment:
+      MARIADB_USER: example
+      MARIADB_PASSWORD: example
+      MARIADB_DATABASE: example
+      MARIADB_ROOT_PASSWORD: example
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  garage:
+    image: dxflrs/garage:v2.0.0
+    container_name: garaged
+    volumes:
+      - ./data/garage.toml:/etc/garage.toml
+      # - ./objectstorage/meta:/var/lib/garage/meta
+      # - ./objectstorage/data:/var/lib/garage/data
+
+  garage_config:
+    image: docker:cli
+    container_name: garage_config
+    depends_on:
+      garage:
+        condition: service_started
+    volumes:
+      - ./data/configure.sh:/scripts/configure.sh
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint: [ "/bin/sh", "-c" ]
+    command: >
+      "
+      echo 'Waiting for Garage service...';
+      until nc -z garage 3900; do
+        echo 'Garage not available yet. Sleeping...';
+        sleep 2;
+      done;
+      echo 'Garage is available. Running initialization...';
+      /scripts/configure.sh;
+      "
+  
