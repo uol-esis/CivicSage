@@ -4,13 +4,13 @@ services:
     ports:
       - "80:80"
     build:
-      context: git@github.com:uol-esis/CivicSage.git#33-add-independent-install-script:frontend
+      context: git@github.com:uol-esis/CivicSage.git#main:frontend
     environment:
       API_HOST: http://backend:8080
 
   backend:
     build:
-      context: git@github.com:uol-esis/CivicSage.git#33-add-independent-install-script:backend
+      context: git@github.com:uol-esis/CivicSage.git#main:backend
     environment:
       SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/example
       SPRING_DATASOURCE_USERNAME: example
@@ -21,6 +21,8 @@ services:
       CIVICSAGE_S3_URL: http://garage:3900
       CIVICSAGE_S3_BUCKET_NAME: civicsage-bucket
       CIVICSAGE_S3_REGION: garage
+      CIVICSAGE_S3_ACCESSKEY: ${CIVICSAGE_S3_ACCESSKEY}
+      CIVICSAGE_S3_SECRETKEY: ${CIVICSAGE_S3_SECRETKEY}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -71,4 +73,3 @@ services:
       echo 'Garage is available. Running initialization...';
       /scripts/configure.sh;
       "
-  
