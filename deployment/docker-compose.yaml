@@ -4,13 +4,13 @@ services:
     ports:
       - "80:80"
     build:
-      context: git@github.com:uol-esis/CivicSage.git#main:frontend
+      context: https://github.com/uol-esis/CivicSage.git#main:frontend
     environment:
       API_HOST: http://backend:8080
 
   backend:
     build:
-      context: git@github.com:uol-esis/CivicSage.git#main:backend
+      context: https://github.com/uol-esis/CivicSage.git#main:backend
     environment:
       SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/example
       SPRING_DATASOURCE_USERNAME: example
