@@ -1,0 +1,91 @@
+name: CivicSage Demo
+services:
+  frontend:
+    ports:
+      - "${HTTP_PORT}:80"
+    build:
+      context: ./frontend
+    environment:
+      API_HOST: http://backend:8080
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/civicsage
+      SPRING_DATASOURCE_USERNAME: cs
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_AI_OPENAI_BASEURL: ${SPRING_AI_OPENAI_BASEURL}
+      SPRING_AI_OPENAI_APIKEY: ${SPRING_AI_OPENAI_APIKEY}
+      SPRING_AI_OPENAI_CHAT_BASEURL: ${SPRING_AI_OPENAI_CHAT_BASEURL}
+      SPRING_AI_OPENAI_CHAT_APIKEY: ${SPRING_AI_OPENAI_CHAT_APIKEY}
+      SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL: ${SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL}
+      SPRING_AI_OPENAI_EMBEDDING_BASEURL: ${SPRING_AI_OPENAI_EMBEDDING_BASEURL}
+      SPRING_AI_OPENAI_EMBEDDING_APIKEY: ${SPRING_AI_OPENAI_EMBEDDING_APIKEY}
+      SPRING_AI_OPENAI_EMBEDDING_OPTIONS_MODEL: ${SPRING_AI_OPENAI_EMBEDDING_OPTIONS_MODEL}
+      CIVICSAGE_SECURITY_ALLOWED-ORIGINS: localhost
+      CIVICSAGE_EMBEDDING_MODEL_CONTEXTLENGTH: 256
+      CIVICSAGE_S3_URL: http://garage:3900
+      CIVICSAGE_S3_BUCKET_NAME: civicsage-bucket
+      CIVICSAGE_S3_REGION: garage
+      CIVICSAGE_S3_ACCESSKEY: ${CIVICSAGE_S3_ACCESSKEY}
+      CIVICSAGE_S3_SECRETKEY: ${CIVICSAGE_S3_SECRETKEY}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      garage:
+        condition: service_started
+
+  db:
+    image: mariadb:11.8.2-ubi9
+    environment:
+      MARIADB_USER: cs
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_DATABASE: civicsage
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    volumes:
+      - mariadb-data:/var/lib/mysql
+
+  garage:
+    image: dxflrs/garage:v2.0.0
+    container_name: garaged
+    volumes:
+      - ./backend/docker/objectstorage/garage.toml:/etc/garage.toml
+      - garage-meta:/var/lib/garage/meta
+      - garage-data:/var/lib/garage/data
+
+  garage_config:
+    image: docker:cli
+    container_name: garage_config
+    depends_on:
+      garage:
+        condition: service_started
+    volumes:
+      - ./backend/docker/objectstorage/scripts:/scripts
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint: [ "/bin/sh", "-c" ]
+    command: >
+      "
+      echo 'Waiting for Garage service...';
+      until nc -z garage 3900; do
+        echo 'Garage not available yet. Sleeping...';
+        sleep 2;
+      done;
+      echo 'Garage is available. Running initialization...';
+      /scripts/configure.sh;
+      "
+
+volumes:
+  mariadb-data:
+  garage-meta:
+  garage-data:
