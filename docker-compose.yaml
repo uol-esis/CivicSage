@@ -5,12 +5,14 @@ services:
       - "${HTTP_PORT}:80"
     build:
       context: ./frontend
+      network: host
     environment:
       API_HOST: http://backend:8080
 
   backend:
     build:
       context: ./backend
+      network: host
     environment:
       SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/civicsage
       SPRING_DATASOURCE_USERNAME: cs

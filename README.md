@@ -98,6 +98,9 @@ KEY ID: <SOME_KEY_ID>
 SECRET_KEY: <SOME_SECRET_KEY>
 ```
 
+> [!TIP]
+> The warnings that both environment variables `CIVICSAE_S3_ACCESSKEY` and `CIVICSAE_S3_SECRETKEY` are missing should be ignored in this step.
+
 Update your `.env`:
 ```console
 $ echo "CIVICSAGE_S3_ACCESSKEY=<SOME_KEY_ID>" >> .env
