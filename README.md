@@ -32,14 +32,18 @@ README.md
 $ touch .env
 
 $ echo "HTTP_PORT=<unused port>" >> .env
+$ echo "BASE_URL=https://chatbot.example.com" >> .env
 $ echo "DB_PASSWORD=$(openssl rand -hex 32)" >> .env
 $ echo "DB_ROOT_PASSWORD=$(openssl rand -hex 32)" >> .env
 
 $ cat .env
 HTTP_PORT=...specified port...
+BASE_URL=https://chatbot.example.com
 DB_PASSWORD=...unique secret password...
 DB_ROOT_PASSWORD=...unique secret password...
 ```
+
+Make sure that $BASE_URL is set to the actual domain where the service will be hosted. This domain must have a valid DNS record pointing to your server to ensure proper name resolution.
 
 > [!TIP]
 > Note (Ubuntu / sudo): When appending to files with elevated privileges, `sudo` does not apply to shell redirection (`>>`). Use tee instead, e.g. `echo "HTTP_PORT=80" | sudo tee -a .env`
